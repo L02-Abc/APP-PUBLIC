@@ -15,19 +15,3 @@ exports[`Onboarding screen matches snapshot 1`] = `
   />
 </View>
 `;
-
-exports[`StartPage (Onboarding) matches snapshot 1`] = `
-<View
-  style={
-    {
-      "alignItems": "center",
-      "flex": 1,
-      "justifyContent": "center",
-    }
-  }
->
-  <ActivityIndicator
-    size="large"
-  />
-</View>
-`;

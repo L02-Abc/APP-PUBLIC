@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
-// 💡 IMPORTANT: Mock the whole screen to avoid RN Renderer issues
+// Mock the whole screen to avoid RN Renderer issues
 jest.mock('../app/(tabs)/index', () => {
   const React = require('react');
   const { Text, TouchableOpacity } = require('react-native');
@@ -37,6 +37,3 @@ describe('HomeScreen (Mocked)', () => {
     fireEvent.press(tab);
   });
 });
-jest.mock('expo-router', () => ({
-  Redirect: () => null,
-}));

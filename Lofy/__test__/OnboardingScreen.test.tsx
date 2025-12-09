@@ -1,23 +1,23 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
-import StartPage from '../app/index';
+import React from "react";
+import { render, waitFor } from "@testing-library/react-native";
+import StartPage from "../app/index";
 
 // Mock expo-router Redirect (real one crashes)
-jest.mock('expo-router', () => ({
+jest.mock("expo-router", () => ({
   Redirect: () => null,
 }));
 
-jest.mock('expo-notifications', () => ({
+jest.mock("expo-notifications", () => ({
   setNotificationHandler: jest.fn(),
-  requestPermissionsAsync: jest.fn(() => ({ status: 'granted' })),
-  getExpoPushTokenAsync: jest.fn(() => ({ data: 'token' })),
+  requestPermissionsAsync: jest.fn(() => ({ status: "granted" })),
+  getExpoPushTokenAsync: jest.fn(() => ({ data: "token" })),
 }));
 
-jest.mock('expo-secure-store', () => ({
-  getItemAsync: jest.fn(() => null),
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn(() => null), // no token
 }));
 
-jest.mock('../app/store/useUserStore', () => ({
+jest.mock("../app/store/useUserStore", () => ({
   __esModule: true,
   default: () => ({
     getState: () => ({
@@ -29,16 +29,20 @@ jest.mock('../app/store/useUserStore', () => ({
 }));
 
 describe("Onboarding screen", () => {
-  it("renders", () => {
+  it("renders safely", async () => {
     const tree = render(<StartPage />);
-    expect(tree).toBeTruthy();
+    await waitFor(() => expect(tree).toBeTruthy());
   });
 
-  it("does not crash", () => {
-    render(<StartPage />);
+  it("does not crash", async () => {
+    const tree = render(<StartPage />);
+    await waitFor(() => tree);
   });
 
-  it("matches snapshot", () => {
-    expect(render(<StartPage />).toJSON()).toMatchSnapshot();
+  it("matches snapshot", async () => {
+    const tree = render(<StartPage />);
+    await waitFor(() =>
+      expect(tree.toJSON()).toMatchSnapshot()
+    );
   });
 });
