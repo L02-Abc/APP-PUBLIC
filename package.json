@@ -2,15 +2,7 @@
   "name": "lofy",
   "version": "1.0.0",
   "main": "expo-router/entry",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "test": "jest --coverage",
-    "test:ci": "jest --coverage"
-
-  },
+  
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "expo": "~54.0.22",
@@ -36,5 +28,10 @@
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "workspaces": ["Lofy", "api"],
+  "scripts": {
+    "test": "npm run test --workspace Lofy"
+  }
+
 }
