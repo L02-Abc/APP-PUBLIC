@@ -1,12 +1,12 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import React from "react";
+import { render, fireEvent } from "@testing-library/react-native";
 
-// Mock the whole screen to avoid RN Renderer issues
-jest.mock('../app/(tabs)/index', () => {
-  const React = require('react');
-  const { Text, TouchableOpacity } = require('react-native');
+// Proper ES module default mock
+jest.mock("../app/(tabs)/index", () => {
+  const React = require("react");
+  const { Text, TouchableOpacity } = require("react-native");
 
-  return function MockHomeScreen() {
+  function MockHomeScreen() {
     return (
       <>
         <Text>Mock Home Screen</Text>
@@ -15,25 +15,31 @@ jest.mock('../app/(tabs)/index', () => {
         </TouchableOpacity>
       </>
     );
+  }
+
+  return {
+    __esModule: true,
+    default: MockHomeScreen,
   };
 });
 
-import HomeScreen from '../app/(tabs)/index';
+import HomeScreen from "../app/(tabs)/index";
 
-describe('HomeScreen (Mocked)', () => {
-  it('renders without crashing', () => {
+describe("HomeScreen (Mocked)", () => {
+  it("renders without crashing", () => {
     const screen = render(<HomeScreen />);
-    expect(screen.getByText('Mock Home Screen')).toBeTruthy();
+    expect(screen.getByText("Mock Home Screen")).toBeTruthy();
   });
 
-  it('renders a tab label', () => {
+  it("renders the tab label", () => {
     const screen = render(<HomeScreen />);
-    expect(screen.getByText('All')).toBeTruthy();
+    expect(screen.getByText("All")).toBeTruthy();
   });
 
-  it('tab can be pressed', () => {
+  it("tab can be pressed", () => {
     const screen = render(<HomeScreen />);
-    const tab = screen.getByTestId('tab-all');
+    const tab = screen.getByTestId("tab-all");
     fireEvent.press(tab);
+    expect(tab).toBeTruthy();
   });
 });
