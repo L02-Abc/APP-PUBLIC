@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useUserStore from '../store/useUserStore';
+import * as Sentry from '@sentry/react-native';
 
 type User = {
   username: string;
@@ -57,7 +58,9 @@ export default function Settings() {
   return (
     <View style={styles.settingContainer}>
 
-      <TouchableOpacity style={styles.cardUser}>
+      <TouchableOpacity style={styles.cardUser} onPress={() => {
+          Sentry.captureMessage("Đây là một tin nhắn log thử nghiệm.");
+        }}>
         <Ionicons name="person-circle-outline"
           size={60}
           color="black"
@@ -85,7 +88,9 @@ export default function Settings() {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => {
+          throw new Error("Lỗi test Sentry từ nhóm Lofy!");
+        }}>
           <FontAwesome name="history"
           size={48}
           color="black"
