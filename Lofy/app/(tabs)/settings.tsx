@@ -30,18 +30,7 @@ export default function Settings() {
       setLoading(true);
       setError(null);
 
-      // const res = await fetch(API_URL, {
-      //   // If you use JWT:
-      //   // headers: { Authorization: `Bearer ${token}` },
-      // });
       const res: User = {username: alias, email: 'abc', phone_number: '123'};
-
-      // if (!res.ok) {
-      //   throw new Error(`HTTP ${res.status}`);
-      // }
-
-      // const json = (await res.json()) as User;
-      //setUser(json);
       setUser(res);
     } catch (err: any) {
       console.log('fetchUser error:', err);
@@ -58,9 +47,7 @@ export default function Settings() {
   return (
     <View style={styles.settingContainer}>
 
-      <TouchableOpacity style={styles.cardUser} onPress={() => {
-          Sentry.captureMessage("Đây là một tin nhắn log thử nghiệm.");
-        }}>
+      <TouchableOpacity style={styles.cardUser}>
         <Ionicons name="person-circle-outline"
           size={60}
           color="black"
@@ -88,16 +75,14 @@ export default function Settings() {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => {
-          throw new Error("Lỗi test Sentry từ nhóm Lofy!");
-        }}>
+      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => router.push('/post/mypost')}>
           <FontAwesome name="history"
           size={48}
           color="black"
-          style={{ marginLeft: 20, marginRight: 12 }} />
+          style={{ marginLeft: 20, marginRight: 12 }}  />
           <View style={styles.cardContent}>
-            <Text style={styles.userName}>Lịch sử hoạt động</Text>
-            <Text style={styles.userInfo}>Xem lại các hoạt động gần đây</Text>
+            <Text style={styles.userName}>Lịch sử</Text>
+            <Text style={styles.userInfo}>Xem lại các bài đăng của bạn gần đây</Text>
           </View>
         </TouchableOpacity>
 

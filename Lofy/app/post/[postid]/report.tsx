@@ -18,11 +18,11 @@ import api from '../../services/api';
 
 // Danh sách các lý do báo cáo có sẵn
 const REPORT_REASONS = [
-  'Spam or scam',
-  'Inappropriate content',
-  'False information',
-  'Harassment',
-  'Other' // Tùy chọn này sẽ mở ra ô nhập liệu title tùy chỉnh
+  'Spam hoặc scam',
+  'Nội dung không phù hợp',
+  'Thông tin sai lệch',
+  'Ngôn từ xúc phạm/không phù hợp',
+  'Khác' // Tùy chọn này sẽ mở ra ô nhập liệu title tùy chỉnh
 ];
 
 export default function ReportScreen() {
@@ -34,17 +34,14 @@ export default function ReportScreen() {
 
   const handleSubmit = async () => {
     // 1. Xác định Title cuối cùng
-    const finalTitle = selectedReason === 'Other' ? customTitle.trim() : selectedReason;
+    const finalTitle = selectedReason === 'Khác' ? customTitle.trim() : selectedReason;
 
     // 2. Validate
     if (!finalTitle) {
       Alert.alert('Missing Information', 'Please select a reason or specify one.');
       return;
     }
-    if (!message.trim()) {
-      Alert.alert('Missing Information', 'Please provide a description of the issue.');
-      return;
-    }
+
 
     setIsSubmitting(true);
 
@@ -53,7 +50,7 @@ export default function ReportScreen() {
       
       const payload = {
         title: finalTitle,
-        report_message: message,
+        report_message: message? message: "No data",
         post_id: postIdStr 
       };
 
@@ -62,15 +59,15 @@ export default function ReportScreen() {
       await api.post(`/others/report/send-report`, payload, {});
 
       Alert.alert(
-        'Report Submitted',
-        'Thank you for keeping our community safe. We will review your report shortly.',
+        'Báo cáo đã gửi thành công',
+        'Cảm ơn bạn vì đẫ giúp cộng đồng văn minh hơn. Chúng tôi sẽ xem xét báo cáo của bạn nhanh nhất có thể!',
         [
           { text: 'OK', onPress: () => router.back() }
         ]
       );
     } catch (error: any) {
       console.error(error);
-      const msg = error.message || 'Failed to submit report. Please try again.';
+      const msg = error.message || 'Lỗi khi gửi báo cáo. Hãy thử lại sau';
       Alert.alert('Error', msg);
     } finally {
       setIsSubmitting(false);
@@ -82,7 +79,7 @@ export default function ReportScreen() {
       <Stack.Screen 
         options={{ 
           headerTitle: 'Report Post',
-          headerBackTitleVisible: false,
+          //headerBackTitleVisible: false,
           headerTintColor: '#333',
         }} 
       />
@@ -96,7 +93,7 @@ export default function ReportScreen() {
           <View style={styles.infoBox}>
             <Ionicons name="shield-checkmark-outline" size={24} color="#2563EB" />
             <Text style={styles.infoText}>
-              Your report is anonymous. Please select the reason why this post is inappropriate.
+              Báo cáo của bạn là hoàn toàn ẩn danh. Hãy chọn các lý do báo cáo với bài đăng này ở dưới
             </Text>
           </View>
 
@@ -129,12 +126,12 @@ export default function ReportScreen() {
           </View>
 
           {/* Section: Custom Title Input (If "Other" selected) */}
-          {selectedReason === 'Other' && (
+          {selectedReason === 'Khác' && (
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Specify Reason <Text style={styles.required}>*</Text></Text>
+              <Text style={styles.label}>Hãy nêu cụ thể hơn về vi phạm này <Text style={styles.required}>*</Text></Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g., Copyright violation..."
+                placeholder="Nêu thông tin cụ thể ở đây"
                 placeholderTextColor="#9ca3af"
                 value={customTitle}
                 onChangeText={setCustomTitle}
@@ -143,11 +140,11 @@ export default function ReportScreen() {
           )}
 
           {/* Section: Message/Description */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Additional Details <Text style={styles.required}>*</Text></Text>
+          {selectedReason !== 'Khác' &&   <View style={styles.formGroup}>
+            <Text style={styles.label}>Cung cấp thêm thông tin về vi phạm này</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Please provide more context about the issue..."
+              placeholder="Thông tin cụ thể hơn về vi phạm"
               placeholderTextColor="#9ca3af"
               multiline
               numberOfLines={5}
@@ -155,7 +152,7 @@ export default function ReportScreen() {
               value={message}
               onChangeText={setMessage}
             />
-          </View>
+          </View>}
 
         </ScrollView>
 
@@ -169,7 +166,7 @@ export default function ReportScreen() {
             {isSubmitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.submitBtnText}>Submit Report</Text>
+              <Text style={styles.submitBtnText}>Gửi</Text>
             )}
           </TouchableOpacity>
         </View>

@@ -11,11 +11,13 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
-  Platform,
+  Platform, Button
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from "@react-native-community/datetimepicker";
+
 import api from '../services/api';
 
 type CreatePostPayload = {
@@ -44,6 +46,8 @@ export default function CreatePostPage() {
   const [building, setBuilding] = useState('H1');
   const [floor, setFloor] = useState('');
   const [room, setRoom] = useState('');
+  const [date, setDate] = useState(new Date());
+
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
 
@@ -77,17 +81,17 @@ export default function CreatePostPage() {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      
+
       formData.append('title', title.trim());
       formData.append('building', building.trim());
       formData.append('post_floor', floor.trim());
       formData.append('nearest_room', room.trim());
-      formData.append('found_at', new Date().toISOString());
+      formData.append('found_at', date.toISOString());
       formData.append('post_description', description.trim());
       const id = buildingMap[String(building).toLowerCase()];
-      formData.append('thread_id',id.toString()); 
+      formData.append('thread_id', id.toString());
 
-      
+
       if (imageUri) {
         const filename = imageUri.split('/').pop() ?? 'photo.jpg';
         const match = /\.(\w+)$/.exec(filename);
@@ -105,7 +109,7 @@ export default function CreatePostPage() {
         } as any);
       }
       console.log('Create payload:', formData);
-      const res = await api.post('/post/create-post', formData, {isFormData: true});
+      const res = await api.post('/post/create-post', formData, { isFormData: true });
 
       console.log('Create response:', res);
       Alert.alert('Thành công', 'Đã tạo bài đăng.', [
@@ -191,6 +195,21 @@ export default function CreatePostPage() {
               onChangeText={setRoom}
             />
           </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Thời gian tìm thấy *</Text>
+
+            <DateTimePicker
+              value={date}
+              mode="datetime"
+              display="default"
+              onChange={(event, selectedDate) => {
+                if (selectedDate) setDate(selectedDate);
+              }}
+            />
+
+          </View>
+
 
           {/* Description */}
           <View style={styles.fieldGroup}>

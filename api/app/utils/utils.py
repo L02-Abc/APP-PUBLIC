@@ -1,4 +1,4 @@
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, cast, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import  AsyncSession
 from fastapi import HTTPException, status, Query
@@ -6,6 +6,8 @@ from app.models.user import User
 from app.models.post import Post, PostImage
 from app.models.notification import Notification
 from app.schemas.post import PostCreate, PostImageBase
+from sqlalchemy.sql.sqltypes import Date, DateTime
+import datetime
 
 async def update_post_status(post_id: int, status: str, session: AsyncSession, current_user: User):
     data = await session.execute(select(Post).where(Post.id == post_id))
@@ -80,9 +82,35 @@ async def paginate(session: AsyncSession, query, page: int, limit: int, model):
 def filt(model, requirements: dict):
     res = []
     for key, value in requirements.items():
-        if value is not None:
-            req = getattr(model, key)
-            res.append(req == value)
+        if value is None:
+            continue
+
+        # Get the column attribute
+        column = getattr(model, key)
+        
+        # Robustly get the python type (handles DateTime, Date, TIMESTAMP, etc.)
+        try:
+            python_type = column.type.python_type
+        except NotImplementedError:
+            python_type = None
+
+        if python_type and issubclass(python_type, (datetime.datetime, datetime.date)):
+            print('Is date')
+            if isinstance(value, str):
+                try:
+                    value = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+                except ValueError:
+                    
+                    continue
+
+            res.append(column >= value)
+
+        elif python_type is str and isinstance(value, str):
+            res.append(column.ilike(f"%{value}%"))
+
+        else:
+            res.append(column == value)
+
     return res
 
 

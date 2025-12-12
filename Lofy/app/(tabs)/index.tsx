@@ -11,7 +11,7 @@ import {
   Text,
   Pressable,
   ScrollView,
-  Image, FlatList, ActivityIndicator
+  Image, FlatList, ActivityIndicator, Keyboard
 } from 'react-native';
 import { TabView, SceneMap, NavigationState, SceneRendererProps } from 'react-native-tab-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -82,36 +82,60 @@ const SearchAndFilterBar = ({
   placeholder,
   onFilterTimePress,
   onFilterFloorPress,
+  setterSearch,
+
 }: {
   placeholder: string;
   onFilterTimePress?: () => void;
   onFilterFloorPress?: () => void;
-}) => (
-  <View style={styles.searchContainer}>
-    <View style={styles.searchBar}>
-      <Ionicons name="search" size={20} color="#666" style={{ marginRight: 8 }} />
-      <TextInput
-        placeholder={placeholder}
-        style={styles.input}
-        placeholderTextColor="#999"
-      />
+  setterSearch?: React.Dispatch<React.SetStateAction<string>>;
+
+}) => {
+  const handleSubmit = async (val: string) => {
+    if (setterSearch) {
+      setterSearch(val)
+    }
+  };
+
+  return (
+    <View style={styles.searchContainer}>
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color="#666" style={{ marginRight: 8 }} />
+
+        <TextInput
+          placeholder={placeholder}
+          style={styles.input}
+          placeholderTextColor="#999"
+          returnKeyType="search"         // hiển thị nút Enter dạng "Search"
+          blurOnSubmit={true} // 👈 this will blur the input, which hides the keyboard
+          onSubmitEditing={e => {
+            handleSubmit(e.nativeEvent.text);
+            Keyboard.dismiss();
+          }}
+
+        />
+      </View>
+
+      {onFilterTimePress && (
+        <TouchableOpacity style={styles.filterBtn} onPress={onFilterTimePress}>
+          <Ionicons name="options-outline" size={24} color="white" />
+          <Text style={styles.filterText}>Time</Text>
+        </TouchableOpacity>
+      )}
+
+      {onFilterFloorPress && (
+        <TouchableOpacity
+          style={[styles.filterBtn, { marginLeft: 8 }]}
+          onPress={onFilterFloorPress}
+        >
+          <Ionicons name="options-outline" size={24} color="white" />
+          <Text style={styles.filterText}>Floor</Text>
+        </TouchableOpacity>
+      )}
     </View>
+  );
+};
 
-    {onFilterTimePress && (
-      <TouchableOpacity style={styles.filterBtn} onPress={onFilterTimePress}>
-        <Ionicons name="options-outline" size={24} color="white" />
-        <Text style={styles.filterText}>Time</Text>
-      </TouchableOpacity>
-    )}
-
-    {onFilterFloorPress && (
-      <TouchableOpacity style={[styles.filterBtn, { marginLeft: 8 }]} onPress={onFilterFloorPress}>
-        <Ionicons name="options-outline" size={24} color="white" />
-        <Text style={styles.filterText}>Floor</Text>
-      </TouchableOpacity>
-    )}
-  </View>
-);
 
 // --- COMPONENT: FILTER DROPDOWN PANEL ---
 // Hiển thị danh sách tùy chọn khi bấm nút Filter
@@ -119,23 +143,35 @@ const FilterPanel = ({
   title,
   options,
   onClose,
+  setterTimeFilt,
+  setterFloorFilt,
 }: {
   title: string;
   options: string[];
   onClose: () => void;
-}) => (
-  <>
-    <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-    <View style={styles.filterPanel}>
-      <Text style={styles.filterTitle}>{title}</Text>
-      {options.map((opt, index) => (
-        <TouchableOpacity key={index} style={styles.filterOption} onPress={onClose}>
-          <Text>{opt}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  </>
-);
+  setterTimeFilt?: React.Dispatch<React.SetStateAction<string>>
+  setterFloorFilt?: React.Dispatch<React.SetStateAction<string>>
+}) => {
+
+  const handleOption = (option: string) => {
+    setterTimeFilt?.(option);
+    setterFloorFilt?.(option);
+  }
+
+  return (
+    <>
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      <View style={styles.filterPanel}>
+        <Text style={styles.filterTitle}>{title}</Text>
+        {options.map((opt, index) => (
+          <TouchableOpacity key={index} style={styles.filterOption} onPress={() => { onClose(); handleOption(opt); }}>
+            <Text>{opt}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </>
+  );
+}
 
 // --- COMPONENT: FOLLOW THREAD BOX ---
 const FollowThread = ({ threadId }: { threadId: number }) => {
@@ -278,10 +314,14 @@ const GenericTabRoute = ({
   const [hasMore, setHasMore] = useState(true); // Are there more posts?
 
   const closeFilter = () => setActiveFilter('none');
-  const timeOptions = ['All', 'This day', 'This week', 'This month'];
+  const timeOptions = ['Tất cả', 'Hôm nay', 'Trong vòng 7 ngày', 'Trong vòng 14 ngày', 'Trong vòng 30 ngày'];
   const floorOptions = ['All Floor', 'Floor B', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5', 'Floor 6', 'Floor 7', 'Floor 8'];
 
-  async function fetchPosts(isArchived: boolean = false, refresh: boolean = false, page: number, limit: number = 10): Promise<DashboardResponse> {
+  const [useSearch, setUseSearch] = useState<string>("")
+  const [useFilterTime, setUseFilterTime] = useState<string>("")
+  const [useFilterFloor, setUseFilterFloor] = useState<string>("")
+
+  async function fetchPosts(isArchived: boolean = false, refresh: boolean = false, page: number, limit: number = 10, postTitle?: string, timeOpt?: string, floorOpt?: string): Promise<DashboardResponse> {
     try {
       let filterBody: any = {};
 
@@ -289,6 +329,46 @@ const GenericTabRoute = ({
         filterBody.building = tabName; // H1, H2, ...
       }
 
+      if (postTitle) {
+        filterBody.title = postTitle;
+      }
+
+      if (timeOpt && timeOpt != "All") {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+
+        const getDateDaysAgo = (days: number) => {
+          const d = new Date();
+          d.setDate(d.getDate() - days);
+          return d;
+        };
+
+        switch (timeOpt) {
+          case "Hôm nay":
+            filterBody.found_at = new Date(`${year}-${month}-${day}`);
+            break;
+
+          case "Trong vòng 7 ngày":
+            filterBody.found_at = getDateDaysAgo(7);
+            break;
+
+          case "Trong vòng 14 ngày":
+            filterBody.found_at = getDateDaysAgo(14);
+            break;
+
+          case "Trong vòng 30 ngày":
+            filterBody.found_at = getDateDaysAgo(30);
+            break;
+        }
+      }
+
+      if (floorOpt && floorOpt != "All Floor") {
+        const index = floorOpt.indexOf(" ");
+        const str = floorOpt.slice(index + 1);
+        filterBody.post_floor = str;
+      }
       const requestPayload = { filters: filterBody }
 
       console.log('POST /post/dashboard', requestPayload);
@@ -329,7 +409,7 @@ const GenericTabRoute = ({
       const targetPage = refresh ? 1 : page;
       const LIMIT = 10;
 
-      const data = await fetchPosts(false, refresh, targetPage, LIMIT);
+      const data = await fetchPosts(false, refresh, targetPage, LIMIT, useSearch, useFilterTime, useFilterFloor);
 
       const mapped: PostItem[] = data.posts.map((p) => ({
         id: p.id,
@@ -343,7 +423,7 @@ const GenericTabRoute = ({
         user_id: p.usr_id,
         status: normalizeStatus(p.post_status),
       }));
-      if (mapped.length === 0) {
+      if (refresh && mapped.length === 0) {
         console.log("No posts found");
         setFound(false);
       }
@@ -353,6 +433,7 @@ const GenericTabRoute = ({
           setPosts(mapped);
           setPage(2); // Next page will be 2
           setHasMore(mapped.length >= LIMIT); // If we got fewer than Limit, no more data
+          setFound(mapped.length > 0);
         } else {
           // LOAD MORE: Append to list
           setPosts((prev) => [...prev, ...mapped]);
@@ -368,12 +449,17 @@ const GenericTabRoute = ({
       setIsRefreshing(false);
       setIsFetchingMore(false);
     }
-  }, [page, hasMore, isFetchingMore, posts.length, tabName]);
+  }, [page, hasMore, isFetchingMore, posts.length, tabName, useSearch, useFilterTime, useFilterFloor]);
 
   // --- EFFECT: INITIAL LOAD ---
   useEffect(() => {
-    loadData(false); // Load page 1 on mount
-  }, [tabName]); // Only re-run if tab changes
+    if (useSearch || useFilterTime || useFilterFloor) {
+      loadData(true);
+    }
+    else {
+      loadData(false);
+    }
+  }, [tabName, useSearch, useFilterTime, useFilterFloor]);
 
   // --- FOOTER RENDERER ---
   const renderFooter = () => {
@@ -392,16 +478,17 @@ const GenericTabRoute = ({
         placeholder={placeholder}
         onFilterTimePress={showTimeFilter ? () => setActiveFilter(activeFilter === 'time' ? 'none' : 'time') : undefined}
         onFilterFloorPress={showFloorFilter ? () => setActiveFilter(activeFilter === 'floor' ? 'none' : 'floor') : undefined}
+        setterSearch={setUseSearch}
       />
 
       {/* Render Filter Time Panel */}
       {activeFilter === 'time' && (
-        <FilterPanel title="Time Options" options={timeOptions} onClose={closeFilter} />
+        <FilterPanel title="Time Options" options={timeOptions} onClose={closeFilter} setterTimeFilt={setUseFilterTime} />
       )}
 
       {/* Render Filter Floor Panel */}
       {activeFilter === 'floor' && (
-        <FilterPanel title="Floor Options" options={floorOptions} onClose={closeFilter} />
+        <FilterPanel title="Floor Options" options={floorOptions} onClose={closeFilter} setterFloorFilt={setUseFilterFloor} />
       )}
 
       {showFollow && (

@@ -8,7 +8,7 @@ const BASE_URL =
   __DEV__
     ? (Platform.OS === 'android'
       ? 'http://10.0.2.2:8000'   // khi test với backend local
-      : 'http://172.21.98.19')
+      : 'http://192.168.1.117:8000')
     : `https://${YOUR_LAPTOP_IP}`;
 
 console.log(`📡 API Connecting to: ${BASE_URL}`);

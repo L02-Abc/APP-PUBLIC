@@ -32,13 +32,13 @@ interface UserName {
 
 // --- TÁCH COMPONENT CON: ClaimCard ---
 // Component này chịu trách nhiệm hiển thị từng item và fetch tên user riêng lẻ
-const ClaimCard = ({ 
-  item, 
-  onValidate, 
-  onReport 
-}: { 
-  item: Claim; 
-  onValidate: (id: number, decision: 'accepted' | 'rejected') => void; 
+const ClaimCard = ({
+  item,
+  onValidate,
+  onReport
+}: {
+  item: Claim;
+  onValidate: (id: number, decision: 'accepted') => void;
   onReport: (id: number) => void;
 }) => {
   const [userName, setUserName] = useState<UserName | null>(null);
@@ -51,18 +51,18 @@ const ClaimCard = ({
 
     const fetchName = async () => {
       try {
-        const res = await api.post(`/user/infoById`,{id: Number(item.usr_id)} , {}); 
-        
+        const res = await api.post(`/user/infoById`, { id: Number(item.usr_id) }, {});
+
         if (isMounted) {
           setUserName(res as UserName); // api wrapper của bạn trả về data trực tiếp
         }
       } catch (err) {
         console.error("Error fetching user name:", err);
       } finally {
-        if (isMounted) setLoadingName(false); 
+        if (isMounted) setLoadingName(false);
       }
     };
-    
+
     fetchName();
 
     return () => { isMounted = false; };
@@ -82,12 +82,12 @@ const ClaimCard = ({
       <Text style={styles.date}>
         {new Date(item.updated_at).toLocaleString('vi-VN')}
       </Text>
-      
+
       <Text style={styles.sectionHeader}>Nội dung</Text>
       <View style={styles.descriptionBox}>
         <Text style={styles.description}>{item.claim_description}</Text>
       </View>
-      
+
       <Text style={styles.sectionHeader}>Thông tin liên hệ</Text>
       <View style={styles.descriptionBox}>
         <Text style={styles.description}>{item.contact_info}</Text>
@@ -102,13 +102,6 @@ const ClaimCard = ({
           <Text style={styles.btnText}>Chấp nhận</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.btn, styles.btnReject]}
-          onPress={() => onValidate(item.id, 'rejected')}
-        >
-          <Ionicons name="close-circle-outline" size={20} color="white" />
-          <Text style={styles.btnText}>Từ chối</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.btn, styles.btnReport]}
@@ -147,11 +140,25 @@ export default function ClaimsScreen() {
     fetchClaims();
   }, [postIdStr]);
 
-  const handleValidateClaim = async (claimId: number, decision: 'accepted' | 'rejected') => {
+  const sendClaim = async (claimId: number, decision: 'accepted' | 'rejected') => {
     try {
       await api.patch(`/post/${claimId}/validate-claim?post_id=${postid}&decision=${decision}`, {});
       Alert.alert('Thành công', `Đã ${decision === 'accepted' ? 'chấp nhận' : 'từ chối'} yêu cầu.`);
-      // Reload lại danh sách sau khi update
+    } catch (err: any) {
+      Alert.alert('Thất bại', err.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
+    }
+  }
+
+  const handleValidateClaim = async (claimId: number, decision: 'accepted') => {
+    try {
+      Alert.alert(
+        "Xác nhận claim",
+        "Bạn có chắc muốn xác nhận claim này là chính xác không? Các claim khác (nếu có) sẽ bị từ chối!",
+        [
+          { text: "Hủy", style: "cancel" },
+          { text: "Xác nhận", style: "default", onPress: () =>  sendClaim(claimId, decision)}
+        ]
+      );
       fetchClaims();
     } catch (err: any) {
       Alert.alert('Thất bại', err.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
@@ -184,10 +191,10 @@ export default function ClaimsScreen() {
           keyExtractor={(item) => item.id.toString()}
           // Sử dụng Component con đã tách ra để render
           renderItem={({ item }) => (
-            <ClaimCard 
-              item={item} 
-              onValidate={handleValidateClaim} 
-              onReport={handleReportClaim} 
+            <ClaimCard
+              item={item}
+              onValidate={handleValidateClaim}
+              onReport={handleReportClaim}
             />
           )}
           contentContainerStyle={styles.listContent}
@@ -309,7 +316,7 @@ const styles = StyleSheet.create({
     flex: 0.3, // Nút report nhỏ hơn
     borderWidth: 1,
     borderColor: '#facc15',
-    alignItems: 'center', 
+    alignItems: 'center',
     justifyContent: 'center'
   },
 });

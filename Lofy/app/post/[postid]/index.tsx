@@ -226,11 +226,11 @@ export default function PostDetail() {
         </View>
       ) : (
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push(`/post/${postid}/report`)}>
             <Text style={styles.secondaryBtnText}>Báo cáo</Text>
           </TouchableOpacity>
           {isSubmitClaim ? (
-            <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push({ pathname: `/post/${postid}/my_claim`, params: { onSubmitted: refreshPost } })}>
+            <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push({ pathname: `/post/${postid}/my_claim` })}>
               <Text style={styles.primaryBtnText}>Xem yêu cầu của bạn</Text>
             </TouchableOpacity>
           ) : (

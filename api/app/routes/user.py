@@ -36,13 +36,12 @@ async def get_my_posts(
     post_id = await session.execute(select(Post.id).where(current_user.id == Post.usr_id))
     post_id = post_id.scalars().all()
     my_posts: List[PostCreate] = []
-    if len(post_id) != 0:
-        for pid in post_id:
-            post = await get_post_byid(pid, session, False) 
-            if post:
-                my_posts.append(post)
-    else:
-        raise HTTPException(status_code=404, detail="User has no post yet")
+    
+    for pid in post_id:
+        post = await get_post_byid(pid, session, False) 
+        if post:
+            my_posts.append(post)
+
 
     return my_posts
 
