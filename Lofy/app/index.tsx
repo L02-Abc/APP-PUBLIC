@@ -54,9 +54,13 @@ export default function StartPage() {
   useEffect(() => {
     const checkToken = async () => {
       const token = await getTokenSecureStorage('auth_token'); // chờ kết quả
-      if (token) {
-        console.log("Token valid:", token)
-        setIsLoggedIn(true);
+      try {
+        if (token) {
+          console.log("Token valid:", token)
+          setIsLoggedIn(true);
+        }
+      } catch {
+        setIsLoading(false);
       }
       setIsLoading(false);
     };
@@ -94,10 +98,10 @@ export default function StartPage() {
 
     const registerTokenWithBackend = async () => {
       try {
-        const  token = await getExpoPushToken();
+        const token = await getExpoPushToken();
         //const email = await getTokenSecureStorage('user_email'); //Cos the sua lai api khong can email
-        const res = await api.post('/user/device-token', {device_push_token: token}, {})
-        if (res.ok){
+        const res = await api.post('/user/device-token', { device_push_token: token }, {})
+        if (res.ok) {
           console.log("Push device token success")
         }
         else {

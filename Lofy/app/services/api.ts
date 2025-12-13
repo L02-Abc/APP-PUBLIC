@@ -2,14 +2,13 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 // --- CẤU HÌNH ĐỊA CHỈ SERVER ---
-const YOUR_LAPTOP_IP = 'lofy-demo.onrender.com';
 
 const BASE_URL =
   __DEV__
     ? (Platform.OS === 'android'
       ? 'http://10.0.2.2:8000'   // khi test với backend local
-      : 'http://192.168.1.117:8000')
-    : `https://${YOUR_LAPTOP_IP}`;
+      : 'http://192.168.1.116:8000')
+    : 'https://lofydemo-596188287284.asia-southeast1.run.app/';
 
 console.log(`📡 API Connecting to: ${BASE_URL}`);
 

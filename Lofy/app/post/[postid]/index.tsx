@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar
+  StatusBar, Alert
 } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -76,7 +76,7 @@ export default function PostDetail() {
     if (res == null) {
       setSubmitClaim(false)
     }
-  } 
+  }
   useEffect(() => {
     submitClaim();
     loadPost().finally(() => setIsLoading(false));
@@ -120,11 +120,37 @@ export default function PostDetail() {
         bg = '#f3f4f6', color = '#6b7280', text = 'Unknown'
     }; // Gray
 
-    console.log('post_status=', status);
     return (
       <View style={[styles.statusBadge, { backgroundColor: bg }]}>
         <Text style={[styles.statusText, { color: color }]}>{text}</Text>
       </View>
+    );
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Gỡ bài viết",
+      "Bạn có chắc muốn xóa bài viết này không?",
+      [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.patch(`/post/soft-delete-post/${postid}`, {});
+              console.log("Deleted!");
+              router.back();
+            } catch (err) {
+              console.log("Error deleting post", err);
+              Alert.alert("Lỗi", "Không thể xóa bài viết.");
+            }
+          }
+        }
+      ]
     );
   };
 
@@ -216,7 +242,7 @@ export default function PostDetail() {
       {/* 6. BOTTOM ACTION BAR (Sticky Footer) */}
       {isPostCreator ? (
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push('/post/')}>
+          <TouchableOpacity style={styles.secondaryBtn} onPress={handleDelete}>
             <Text style={styles.secondaryBtnText}>Gỡ bỏ</Text>
           </TouchableOpacity>
 

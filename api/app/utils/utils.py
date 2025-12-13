@@ -85,17 +85,14 @@ def filt(model, requirements: dict):
         if value is None:
             continue
 
-        # Get the column attribute
         column = getattr(model, key)
         
-        # Robustly get the python type (handles DateTime, Date, TIMESTAMP, etc.)
         try:
             python_type = column.type.python_type
         except NotImplementedError:
             python_type = None
-
+        print("Helo")
         if python_type and issubclass(python_type, (datetime.datetime, datetime.date)):
-            print('Is date')
             if isinstance(value, str):
                 try:
                     value = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))

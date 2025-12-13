@@ -21,6 +21,9 @@ import api from '../services/api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useUserStore from '../store/useUserStore';
 import { statusColor } from '@/styles/theme';
+import { useFocusEffect } from "expo-router";
+
+
 
 // --- TYPE DEFINITIONS ---
 type RouteKey = 'all' | 'h1' | 'h2' | 'h3' | 'h6' | 'c';
@@ -436,7 +439,15 @@ const GenericTabRoute = ({
           setFound(mapped.length > 0);
         } else {
           // LOAD MORE: Append to list
-          setPosts((prev) => [...prev, ...mapped]);
+          setPosts((prev) => {
+            const newList = [...prev];
+            mapped.forEach(item => {
+              if (!newList.some(p => p.id === item.id)) {
+                newList.push(item);
+              }
+            });
+            return newList;
+          });
           setPage((prev) => prev + 1);
           setHasMore(mapped.length >= LIMIT);
         }
@@ -451,15 +462,17 @@ const GenericTabRoute = ({
     }
   }, [page, hasMore, isFetchingMore, posts.length, tabName, useSearch, useFilterTime, useFilterFloor]);
 
-  // --- EFFECT: INITIAL LOAD ---
-  useEffect(() => {
-    if (useSearch || useFilterTime || useFilterFloor) {
+  useFocusEffect(
+    useCallback(() => {
+
+
       loadData(true);
-    }
-    else {
-      loadData(false);
-    }
-  }, [tabName, useSearch, useFilterTime, useFilterFloor]);
+
+
+
+
+    }, [tabName, useSearch, useFilterTime, useFilterFloor])
+  );
 
   // --- FOOTER RENDERER ---
   const renderFooter = () => {

@@ -106,14 +106,14 @@ async def get_post_details(post_id: int, session: AsyncSession = Depends(get_db)
     return post_detail
 
 
-@router.patch("/soft-delete-post/{post_id}", response_model=dict)
+@router.patch("/soft-delete-post/{post_id}")
 async def soft_delete_post(
     post_id: int,
     session: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
     await update_post_status(post_id, "DELETED", session, current_user)
-    return {"message": f"Soft-deleted post {post_id}"}
+    
 
 
 @router.post("/dashboard", response_model=dict)

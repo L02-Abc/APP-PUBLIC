@@ -86,7 +86,7 @@ export default function CreatePostPage() {
       formData.append('building', building.trim());
       formData.append('post_floor', floor.trim());
       formData.append('nearest_room', room.trim());
-      formData.append('found_at', date.toISOString());
+      formData.append('found_at', date.toISOString().trim());
       formData.append('post_description', description.trim());
       const id = buildingMap[String(building).toLowerCase()];
       formData.append('thread_id', id.toString());
