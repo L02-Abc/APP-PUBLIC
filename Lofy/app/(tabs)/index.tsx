@@ -63,7 +63,7 @@ type PostItem = {
   found_at: Date;
   post_des: string;
   user_id: number;
-  status: 'open' | 'with-security' | 'returned' | 'pending';
+  status: 'open' | 'with-security' | 'archived' | 'pending';
 };
 
 
@@ -86,13 +86,15 @@ const SearchAndFilterBar = ({
   onFilterTimePress,
   onFilterFloorPress,
   setterSearch,
-
+  timeOption,
+  floorOption,
 }: {
   placeholder: string;
   onFilterTimePress?: () => void;
   onFilterFloorPress?: () => void;
   setterSearch?: React.Dispatch<React.SetStateAction<string>>;
-
+  timeOption: string;
+  floorOption: string;
 }) => {
   const handleSubmit = async (val: string) => {
     if (setterSearch) {
@@ -120,19 +122,26 @@ const SearchAndFilterBar = ({
       </View>
 
       {onFilterTimePress && (
-        <TouchableOpacity style={styles.filterBtn} onPress={onFilterTimePress}>
-          <Ionicons name="options-outline" size={24} color="white" />
-          <Text style={styles.filterText}>Time</Text>
+        <TouchableOpacity style={[styles.filterBtn, timeOption != "Tất cả" ? styles.filterBtnSelected : null]} onPress={onFilterTimePress}>
+          {timeOption != "Tất cả" ? (
+            <Ionicons name="options-outline" size={24} color={headerTheme.colors.primary} />
+          ) : (
+            <Ionicons name="options-outline" size={24} color="white" />
+          )
+          }
+          <Text style={[styles.filterText, timeOption != "Tất cả" ? styles.filterTextSelected : null]}>Time</Text>
         </TouchableOpacity>
       )}
 
       {onFilterFloorPress && (
-        <TouchableOpacity
-          style={[styles.filterBtn, { marginLeft: 8 }]}
-          onPress={onFilterFloorPress}
-        >
-          <Ionicons name="options-outline" size={24} color="white" />
-          <Text style={styles.filterText}>Floor</Text>
+        <TouchableOpacity style={[styles.filterBtn, floorOption != "Tất cả" ? styles.filterBtnSelected : null]} onPress={onFilterFloorPress}>
+          {floorOption != "Tất cả" ? (
+            <Ionicons name="options-outline" size={24} color={headerTheme.colors.primary} />
+          ) : (
+            <Ionicons name="options-outline" size={24} color="white" />
+          )
+          }
+          <Text style={[styles.filterText, floorOption != "Tất cả" ? styles.filterTextSelected : null]}>Floor</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -146,35 +155,59 @@ const FilterPanel = ({
   title,
   options,
   onClose,
+  selectedValue,
   setterTimeFilt,
   setterFloorFilt,
 }: {
   title: string;
   options: string[];
   onClose: () => void;
-  setterTimeFilt?: React.Dispatch<React.SetStateAction<string>>
-  setterFloorFilt?: React.Dispatch<React.SetStateAction<string>>
+  selectedValue?: string;
+  setterTimeFilt?: React.Dispatch<React.SetStateAction<string>>;
+  setterFloorFilt?: React.Dispatch<React.SetStateAction<string>>;
 }) => {
-
   const handleOption = (option: string) => {
     setterTimeFilt?.(option);
     setterFloorFilt?.(option);
-  }
+  };
 
   return (
     <>
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       <View style={styles.filterPanel}>
         <Text style={styles.filterTitle}>{title}</Text>
-        {options.map((opt, index) => (
-          <TouchableOpacity key={index} style={styles.filterOption} onPress={() => { onClose(); handleOption(opt); }}>
-            <Text>{opt}</Text>
-          </TouchableOpacity>
-        ))}
+
+        {options.map((opt, index) => {
+          const isSelected = opt === selectedValue;
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.filterOption,
+                isSelected && styles.filterOptionSelected,
+              ]}
+              onPress={() => {
+                handleOption(opt);
+                onClose();
+              }}
+            >
+              <Text
+                style={[
+                  styles.filterOptionText,
+                  isSelected && styles.filterOptionTextSelected,
+                ]}
+              >
+                {opt}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </>
   );
-}
+};
+
 
 // --- COMPONENT: FOLLOW THREAD BOX ---
 const FollowThread = ({ threadId }: { threadId: number }) => {
@@ -220,58 +253,77 @@ const FollowThread = ({ threadId }: { threadId: number }) => {
 };
 
 // Component Card Item
-const CardItem = ({ item }: { item: PostItem }) => {
-  // Logic chọn màu dựa trên status
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return { bg: statusColor.colorsBackground.open, text: statusColor.colorsText.open, label: 'Open' }; // Red
-      case 'with-security':
-        return { bg: statusColor.colorsBackground.withSecurity, text: statusColor.colorsBackground.withSecurity, label: 'Security' };
-      case 'returned':
-        return { bg: statusColor.colorsBackground.return, text: statusColor.colorsBackground.return, label: 'Returned' }; // Green
-      case 'pending':
-        return { bg: statusColor.colorsBackground.pending, text: statusColor.colorsBackground.pending, label: 'Pending' };
-      default:
-        return { bg: '#f3f4f6', text: '#6b7280', label: status }; // Gray
-    }
-  };
+const STATUS_MAP: Record<string, { bg: string; color: string; text: string }> = {
+  open: {
+    bg: statusColor.colorsBackground.open,
+    color: statusColor.colorsText.open,
+    text: 'OPEN',
+  },
+  'with-security': {
+    bg: statusColor.colorsBackground.withSecurity,
+    color: statusColor.colorsText.withSecurity,
+    text: 'SECURITY',
+  },
+  archived: {
+    bg: statusColor.colorsBackground.return,
+    color: statusColor.colorsText.return,
+    text: 'RETURNED',
+  },
+  pending: {
+    bg: statusColor.colorsBackground.pending,
+    color: statusColor.colorsText.pending,
+    text: 'PENDING',
+  },
+};
 
-  const statusStyle = getStatusColor(item.status);
+
+// Component Card Item
+const CardItem = ({ item }: { item: PostItem }) => {
+  const s = item.status?.toLowerCase();
+  console.log(s);
+  const statusStyle =
+    STATUS_MAP[s ?? ''] ?? {
+      bg: '#f3f4f6',
+      color: '#6b7280',
+      text: 'Không xác định',
+    };
 
   const handlePress = () => {
-    // Điều hướng đến trang chi tiết: /post/123
     router.push(`/post/${item.id}`);
   };
 
+  const imageUri =
+    item.imageURL?.trim()
+      ? item.imageURL
+      : 'https://via.placeholder.com/150';
+
   return (
     <TouchableOpacity style={styles.cartItem} onPress={handlePress} activeOpacity={0.7}>
-      {/* Hình ảnh bên trái */}
-      <Image
-        source={{ uri: item.imageURL || 'https://via.placeholder.com/150' }}
-        style={styles.cardImage}
-        resizeMode="cover"
-      />
+      <Image source={{ uri: imageUri }} style={styles.cardImage} resizeMode="cover" />
 
-      {/* Nội dung ở giữa */}
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+        <Text style={styles.cardTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
 
         <View style={styles.cardMetaRow}>
           <Ionicons name="location-outline" size={14} color="#666" />
-          <Text style={styles.cardMetaText} numberOfLines={1}>{item.building + ", Tầng " + item.post_floor + ", Phòng " + item.nearest_room}</Text>
+          <Text style={styles.cardMetaText} numberOfLines={1}>
+            {item.building}, Tầng {item.post_floor}, Phòng {item.nearest_room}
+          </Text>
         </View>
 
         <View style={styles.cardMetaRow}>
           <Ionicons name="time-outline" size={14} color="#666" />
-          <Text style={styles.cardMetaText}>{formatDate(new Date(item.found_at))}</Text>
+          <Text style={styles.cardMetaText}>
+            {formatDate(new Date(item.found_at))}
+          </Text>
         </View>
       </View>
 
-      {/* Badge trạng thái ở góc */}
       <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-        <Text style={[styles.statusText, { color: statusStyle.text }]}>
-          {statusStyle.label}
+        <Text style={[styles.statusText, { color: statusStyle.color }]}>
+          {statusStyle.text}
         </Text>
       </View>
     </TouchableOpacity>
@@ -318,11 +370,11 @@ const GenericTabRoute = ({
 
   const closeFilter = () => setActiveFilter('none');
   const timeOptions = ['Tất cả', 'Hôm nay', 'Trong vòng 7 ngày', 'Trong vòng 14 ngày', 'Trong vòng 30 ngày'];
-  const floorOptions = ['All Floor', 'Floor B', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5', 'Floor 6', 'Floor 7', 'Floor 8'];
+  const floorOptions = ['Tất cả', 'Tầng B', 'Tầng 1', 'Tầng 2', 'Tầng 3', 'Tầng 4', 'Tầng 5', 'Tầng 6', 'Tầng 7', 'Tầng 8'];
 
   const [useSearch, setUseSearch] = useState<string>("")
-  const [useFilterTime, setUseFilterTime] = useState<string>("")
-  const [useFilterFloor, setUseFilterFloor] = useState<string>("")
+  const [useFilterTime, setUseFilterTime] = useState<string>("Tất cả")
+  const [useFilterFloor, setUseFilterFloor] = useState<string>("Tất cả")
 
   async function fetchPosts(isArchived: boolean = false, refresh: boolean = false, page: number, limit: number = 10, postTitle?: string, timeOpt?: string, floorOpt?: string): Promise<DashboardResponse> {
     try {
@@ -336,7 +388,7 @@ const GenericTabRoute = ({
         filterBody.title = postTitle;
       }
 
-      if (timeOpt && timeOpt != "All") {
+      if (timeOpt && timeOpt != "Tất cả") {
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -367,7 +419,7 @@ const GenericTabRoute = ({
         }
       }
 
-      if (floorOpt && floorOpt != "All Floor") {
+      if (floorOpt && floorOpt != "Tất cả") {
         const index = floorOpt.indexOf(" ");
         const str = floorOpt.slice(index + 1);
         filterBody.post_floor = str;
@@ -390,15 +442,14 @@ const GenericTabRoute = ({
         return 'open';
       case 'WITH_SECURITY':
         return 'with-security';
-      case 'RETURNED':
-        return 'returned';
+      case 'ARCHIVED':
+        return 'archived';
       default:
         return 'pending';
     }
   }
 
   const loadData = useCallback(async (refresh = false) => {
-    // Prevent duplicate calls
     if (!refresh && (isFetchingMore || !hasMore)) return;
 
     // Set Loading States
@@ -464,13 +515,7 @@ const GenericTabRoute = ({
 
   useFocusEffect(
     useCallback(() => {
-
-
       loadData(true);
-
-
-
-
     }, [tabName, useSearch, useFilterTime, useFilterFloor])
   );
 
@@ -492,16 +537,18 @@ const GenericTabRoute = ({
         onFilterTimePress={showTimeFilter ? () => setActiveFilter(activeFilter === 'time' ? 'none' : 'time') : undefined}
         onFilterFloorPress={showFloorFilter ? () => setActiveFilter(activeFilter === 'floor' ? 'none' : 'floor') : undefined}
         setterSearch={setUseSearch}
+        timeOption={useFilterTime}
+        floorOption={useFilterFloor}
       />
 
       {/* Render Filter Time Panel */}
       {activeFilter === 'time' && (
-        <FilterPanel title="Time Options" options={timeOptions} onClose={closeFilter} setterTimeFilt={setUseFilterTime} />
+        <FilterPanel title="Time Options" options={timeOptions} selectedValue={useFilterTime} onClose={closeFilter} setterTimeFilt={setUseFilterTime} />
       )}
 
       {/* Render Filter Floor Panel */}
       {activeFilter === 'floor' && (
-        <FilterPanel title="Floor Options" options={floorOptions} onClose={closeFilter} setterFloorFilt={setUseFilterFloor} />
+        <FilterPanel title="Floor Options" options={floorOptions} selectedValue={useFilterFloor} onClose={closeFilter} setterFloorFilt={setUseFilterFloor} />
       )}
 
       {showFollow && (
@@ -563,11 +610,11 @@ export default function ScrollableTabView() {
 
   const renderScene = SceneMap({
     all: () => <GenericTabRoute tabName="All" placeholder="Tìm kiếm chung..." showFloorFilter={false} showFollow={false} />,
-    h1: () => <GenericTabRoute tabName="H1" placeholder="Tìm trong H1..." />, // Ví dụ: H1 không cần lọc tầng
-    h2: () => <GenericTabRoute tabName="H2" />,
-    h3: () => <GenericTabRoute tabName="H3" />,
-    h6: () => <GenericTabRoute tabName="H6" />,
-    c: () => <GenericTabRoute tabName="C" showFloorFilter={false} />,
+    h1: () => <GenericTabRoute tabName="H1" placeholder="Tìm ở tòa H1..." />,
+    h2: () => <GenericTabRoute tabName="H2" placeholder="Tìm ở toà H2..." />,
+    h3: () => <GenericTabRoute tabName="H3" placeholder="Tìm ở toà H3..." />,
+    h6: () => <GenericTabRoute tabName="H6" placeholder="Tìm ở toà H6..." />,
+    c: () => <GenericTabRoute tabName="C" placeholder="Tìm ở nhà thi đấu..." showFloorFilter={false} />,
   });
 
   // --- SCROLLABLE TAB BAR RENDERER ---
@@ -584,8 +631,6 @@ export default function ScrollableTabView() {
           contentContainerStyle={styles.scrollContainer}
         >
           {props.navigationState.routes.map((route, i) => {
-            // Tính toán opacity dựa trên vị trí scroll (tương đối
-            // Ở đây ta dùng cách đơn giản: Kiểm tra index hiện tại để highlight.
             const isFocused = index === i;
             const opacity = isFocused ? 1 : 0.6;
 
@@ -699,17 +744,24 @@ const styles = StyleSheet.create({
   filterBtn: {
     flexDirection: 'row',
     paddingHorizontal: 10,
+    marginLeft: 5,
     height: 40,
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  filterBtnSelected: {
+    backgroundColor: 'white',
+  },
   filterText: {
     color: 'white',
     fontSize: 12,
     marginLeft: 4,
     fontWeight: 'bold',
+  },
+  filterTextSelected: {
+    color: headerTheme.colors.primary,
   },
 
   // --- Styles: Dropdown Panel ---
@@ -740,6 +792,7 @@ const styles = StyleSheet.create({
   },
   filterOption: {
     paddingVertical: 8,
+    borderRadius: 8,
   },
 
   //style follow box
@@ -846,4 +899,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+
+  filterOptionText: {
+    fontSize: 14,
+    color: '#374151',
+    paddingHorizontal: 5,
+  },
+
+  filterOptionTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+
+  filterOptionSelected: {
+    backgroundColor: '#2563eb',
+  },
+
 });

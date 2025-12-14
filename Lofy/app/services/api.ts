@@ -7,9 +7,9 @@ const BASE_URL =
   __DEV__
     ? (Platform.OS === 'android'
       ? 'http://10.0.2.2:8000'   // khi test với backend local
-      : 'http://192.168.1.116:8000')
-    : 'https://lofydemo-596188287284.asia-southeast1.run.app/';
-
+      : 'https://lofydemo-596188287284.asia-southeast1.run.app')
+    : 'http://192.168.1.116:8000'
+  ;
 console.log(`📡 API Connecting to: ${BASE_URL}`);
 
 const getHeaders = async (isFormData: boolean = false) => {
@@ -142,25 +142,36 @@ const api = {
       throw e; // Ném lỗi tiếp để UI xử lý
     }
   },
-  patch: async (endpoint: string, body: any) => {
+  patch: async (endpoint: string, body: any, options: { timeout?: number, isFormData?: boolean }) => {
     try {
-      const headers = await getHeaders();
+      const autoIsFormData =
+        typeof FormData !== 'undefined' && body instanceof FormData;
+      const isFormData = options.isFormData ?? autoIsFormData;
+
+      const headers = await getHeaders(isFormData);
       const url = `${BASE_URL}${endpoint}`;
-      console.log(`PATCH Request: ${url}`, body ? `| Body: ${JSON.stringify(body)}` : '');
+
+      if (isFormData) {
+        console.log(`PATCH FormData Request: ${url}`);
+      } else {
+        console.log(`PATCH JSON Request: ${url} | Body:`, JSON.stringify(body));
+      }
 
       const response = await fetchWithTimeout(url, {
         method: 'PATCH',
         headers,
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : JSON.stringify(body),
+        timeout: options.timeout,
       });
 
       return await handleResponse(response);
+
     } catch (e: any) {
-      if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout).' };
-      console.error(`Network/Logic Error`, e);
-      throw e;
+      if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout). Kiểm tra server.' };
+      console.error('Network/Logic Error:', e);
+      throw e; // Ném lỗi tiếp để UI xử lý
     }
-  }
+  },
 };
 
 export default api;

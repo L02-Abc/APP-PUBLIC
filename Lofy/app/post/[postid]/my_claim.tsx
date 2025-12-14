@@ -10,13 +10,12 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
-    SafeAreaView
 } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../../services/api'; // Đảm bảo đường dẫn này đúng với cấu trúc của bạn
-
-
+import api from '../../services/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { headerTheme } from 'styles/theme'
 type Claim = {
     post_id: number,
     claim_description: string,
@@ -64,16 +63,16 @@ export default function SubmitClaimScreen() {
         setIsUpdating(true);
 
         try {
-            // 2. Chuẩn bị payload
+
             const payload = {
                 post_id: postid,
                 claim_description: description,
                 contact_info: contactInfo,
             };
 
-            // 3. Gọi API (Endpoint giả định dựa trên context cũ: POST /posts/{id}/claims)
+
             const postIdStr = Array.isArray(postid) ? postid[0] : postid;
-            await api.patch(`/post/${postIdStr}/update-claim`, payload);
+            await api.patch(`/post/${postIdStr}/update-claim`, payload, {});
 
             // 4. Thành công
             Alert.alert(
@@ -96,13 +95,21 @@ export default function SubmitClaimScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {/* Config Header */}
             <Stack.Screen
                 options={{
-                    headerTitle: 'Gửi yêu cầu nhận đồ',
-                    //headerBackTitleVisible: false,
+                    headerTitle: 'Yêu cầu nhận của tôi',
+                    headerBackVisible: true,
+                    headerBackTitle: 'Quay lại',
                     headerTintColor: '#333',
+                    headerStyle: { backgroundColor: headerTheme.colors.primary },
+                    headerTitleStyle: {
+                        fontFamily: "Inter-Bold",
+                        fontSize: 20,
+                        fontWeight: "700",
+                        color: "#111827",
+                    },
                 }}
             />
 
@@ -124,6 +131,7 @@ export default function SubmitClaimScreen() {
                     <View style={styles.infoBox}>
                         <Ionicons name="information-circle-outline" size={24} color="#2563EB" />
                         <Text style={styles.infoText}>
+                            Hãy nhập chính xác các thông tin bên dưới.
                             Các thông tin mà bạn nhập sẽ chỉ hiển thị với người đăng bài
                         </Text>
                     </View>
@@ -147,7 +155,7 @@ export default function SubmitClaimScreen() {
                         <Text style={styles.label}>Thông tin liên hệ <Text style={styles.required}>*</Text></Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Số điện thoại, Zalo hoặc Email..."
+                            placeholder="Số điện thoại, Zalo, Email..."
                             placeholderTextColor="#9ca3af"
                             value={contactInfo}
                             onChangeText={setContactInfo}
@@ -172,7 +180,7 @@ export default function SubmitClaimScreen() {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 }
 

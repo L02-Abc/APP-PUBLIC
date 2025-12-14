@@ -25,17 +25,17 @@ export const headerTheme = {
 };
 
 export const tabBarTheme = {
-    colors: {
-        activeTintColor: '#2563EB',
-        background: '#FFFFFF',
-    }
+  colors: {
+    activeTintColor: '#2563EB',
+    background: '#FFFFFF',
+  }
 }
 
 export const loginTheme = {
   colors: {
     primary: '#3dbffbff',
     background: '#FFFFFF',
-}
+  }
 };
 
 export const statusColor = {
@@ -48,7 +48,7 @@ export const statusColor = {
 
   colorsBackground: {
     open: '#fae1e1ff',
-    return: '#c6ffd3ff',
+    return: '#cbfdd6ff',
     pending: '#fcffdcff',
     withSecurity: '#a8a0ffff'
   }

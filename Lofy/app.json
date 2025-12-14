@@ -48,7 +48,9 @@
           "project": "react-native",
           "organization": "khang1309"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-router"
     ]
   }
 }

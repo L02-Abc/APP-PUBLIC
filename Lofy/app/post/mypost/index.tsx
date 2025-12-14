@@ -6,13 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
-  SafeAreaView
+  Image, Pressable
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { headerTheme } from 'styles/theme'
 type PostItem = {
   id: number;
   title: string;
@@ -44,7 +44,7 @@ const CardItem = ({ item }: { item: PostItem }) => {
     switch (s) {
       case 'open': return { bg: '#fee2e2', text: '#ef4444', label: 'Open' };
       case 'with-security': return { bg: '#fef3c7', text: '#d97706', label: 'Security' }; // Chỉnh lại màu text cho dễ nhìn
-      case 'returned': return { bg: '#dcfce7', text: '#22c55e', label: 'Returned' };
+      case 'archived': return { bg: '#dcfce7', text: '#22c55e', label: 'Returned' };
       default: return { bg: '#f3f4f6', text: '#6b7280', label: status };
     }
   };
@@ -52,8 +52,8 @@ const CardItem = ({ item }: { item: PostItem }) => {
   const statusStyle = getStatusColor(item.post_status);
 
   return (
-    <TouchableOpacity 
-      style={styles.cardItem} 
+    <TouchableOpacity
+      style={styles.cardItem}
       activeOpacity={0.7}
       onPress={() => router.push(`/post/${item.id}`)}
     >
@@ -94,9 +94,7 @@ export default function MyPostsScreen() {
     const fetchMyPosts = async () => {
       setIsLoading(true);
       try {
-        // Gửi filter usr_id để backend lọc bài của mình
-        // Payload: { "usr_id": 123 } -> Backend: filt(Post, {usr_id: 123})
-        
+
         const data: any = await api.get('/user/me/posts');
 
         if (data) {
@@ -110,7 +108,7 @@ export default function MyPostsScreen() {
             found_at: new Date(p.found_at),
             post_des: p.post_description,
             user_id: p.usr_id,
-            status: p.post_status ? p.post_status.toLowerCase() : 'open',
+            post_status: p.post_status ? p.post_status.toLowerCase() : 'open',
           }));
           setPosts(mapped);
         }
@@ -125,15 +123,22 @@ export default function MyPostsScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Cấu hình Header */}
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerTitle: 'Bài viết của tôi',
-          //headerBackTitleVisible: false,
+          headerBackVisible: true,
+          headerBackTitle: 'Quay lại',
           headerTintColor: '#333',
-          headerStyle: { backgroundColor: '#fff' },
-        }} 
+          headerStyle: { backgroundColor: headerTheme.colors.primary },
+          headerTitleStyle: {
+            fontFamily: "Inter-Bold",
+            fontSize: 20,
+            fontWeight: "700",
+            color: "#111827",
+          },
+        }}
       />
 
       <View style={styles.content}>
@@ -150,7 +155,7 @@ export default function MyPostsScreen() {
           <View style={styles.centerBox}>
             <Ionicons name="document-text-outline" size={64} color="#d1d5db" />
             <Text style={styles.emptyText}>Bạn chưa đăng bài viết nào.</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.createNowBtn}
               onPress={() => router.push('/(tabs)/create')}
             >
@@ -170,7 +175,7 @@ export default function MyPostsScreen() {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -201,7 +206,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
   },
-  
+
   // Nút tạo bài viết khi danh sách trống
   createNowBtn: {
     backgroundColor: '#2563EB',
@@ -218,9 +223,9 @@ const styles = StyleSheet.create({
   cardItem: {
     backgroundColor: 'white',
     borderRadius: 12,
-    flexDirection: 'row', 
+    flexDirection: 'row',
     padding: 12,
-    marginBottom: 12, 
+    marginBottom: 12,
     // Shadow
     elevation: 2,
     shadowColor: '#000',

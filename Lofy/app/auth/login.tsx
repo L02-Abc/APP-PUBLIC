@@ -67,9 +67,6 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      // QUAN TRỌNG: Backend tự cộng chuỗi "@hcmut.edu.vn" 
-      // Nên ta phải CẮT BỎ phần đuôi trước khi gửi
-      // Ví dụ: input "123@hcmut.edu.vn" -> gửi "123"
       const mssv = email.toLowerCase().replace(DOMAIN_REQUIRED, '');
 
       console.log('Sending request for:', mssv);
@@ -122,7 +119,7 @@ export default function LoginScreen() {
         await SecureStore.setItemAsync('user_email', email);
 
         setIsLoading(false);
-        router.replace('/(tabs)');
+        router.replace('/');
       } else {
         throw { message: 'Không nhận được token từ server' };
       }
@@ -160,12 +157,12 @@ export default function LoginScreen() {
           {/* FORM INPUT */}
           <View style={styles.formCard}>
             <Text style={styles.cardTitle}>
-              {step === 'input_email' ? 'Đăng nhập sinh viên' : 'Xác thực OTP'}
+              {step === 'input_email' ? 'Đăng nhập' : 'Xác thực OTP'}
             </Text>
 
             {/* EMAIL FIELD */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email nhà trường</Text>
+              <Text style={styles.label}>Email của trường</Text>
               <View style={[styles.inputContainer, step === 'input_otp' && styles.disabledInput]}>
                 <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
                 <TextInput

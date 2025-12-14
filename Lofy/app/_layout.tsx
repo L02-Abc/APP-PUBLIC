@@ -39,19 +39,14 @@ export default Sentry.wrap(function RootLayout() {
           options={{
             title: 'Thông báo',
             headerShown: true,
-            headerBackTitle: 'Quay lại',   // ← custom back button text
-            //headerBackTitleVisible: true, // ← ensures the text shows (iOS only)
-
+            headerBackTitle: 'Quay lại',
           }}
         />
-        
-        
-        {/* Post, etc. if you want */}
-        {/* <Stack.Screen name="post/index" options={{ title: 'Post' }} /> */}
-        <Stack.Screen name="post/[postid]" options={{ title:  'Chi tiết bài viết',  headerBackTitle: 'Quay lại', }} 
-         
+
+        <Stack.Screen name="post/[postid]" options={{ title: 'Chi tiết bài viết', headerBackTitle: 'Quay lại', }}
+
         />
-        <Stack.Screen name="create/create" options={{ title:  'Tạo bài đăng',  headerBackTitle: 'Quay lại', }} 
+        <Stack.Screen name="create/create" options={{ title: 'Tạo bài đăng', headerBackTitle: 'Quay lại', }}
         />
       </Stack>
     </SafeAreaProvider>

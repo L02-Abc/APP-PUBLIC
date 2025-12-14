@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useState, useEffect, useCallback } from 'react'
+import { Stack } from 'expo-router'
 import { useNotificationStore } from '../store/notiStore'
 import api from '../services/api'
 import { Notification } from '../schema/notification'
-
+import { headerTheme } from 'styles/theme'
 
 
 export default function Notifications() {
@@ -24,10 +25,10 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchNotifications()
-  },[])
+  }, [])
 
   const itemInNoti = ({ item }: { item: Notification }) => (
-    <TouchableOpacity style={[styles.item, item.is_read ? styles.read : styles.unread]} 
+    <TouchableOpacity style={[styles.item, item.is_read ? styles.read : styles.unread]}
       onPress={() => markAsRead(item.id)}
     >
       <View>
@@ -41,6 +42,22 @@ export default function Notifications() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerTitle: 'Thông báo',
+          headerBackVisible: true,
+          headerBackTitle: 'Quay lại',
+          headerTintColor: '#333',
+          headerStyle: { backgroundColor: headerTheme.colors.primary },
+          headerTitleStyle: {
+            fontFamily: "Inter-Bold",
+            fontSize: 20,
+            fontWeight: "700",
+            color: "#111827",
+          },
+
+        }}
+      />
       <FlatList
         data={notifications}
         renderItem={itemInNoti}

@@ -16,21 +16,12 @@ import {
 import { Stack, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import api from '../services/api';
-
-type CreatePostPayload = {
-  // ⚠️ If your backend PostCreate still requires id, you may need `id: number` here (e.g. 0)
-  title: string;
-  building: string;
-  post_floor: string;
-  nearest_room: string;
-  found_at: string;        // ISO datetime string
-  post_description: string;
-  thread_id: number;
-  image_file: File[];
-};
+import DropDownPicker from 'react-native-dropdown-picker';
+import { headerTheme } from 'styles/theme'
 
 const buildingMap: Record<string, number> = {
   h1: 1,
@@ -40,10 +31,31 @@ const buildingMap: Record<string, number> = {
   c: 4,
 };
 
+const BUILDINGS = [
+  { label: 'Tòa nhà H1', value: 'H1' },
+  { label: 'Tòa nhà H2', value: 'H2' },
+  { label: 'Tòa nhà H3', value: 'H3' },
+  { label: 'Tòa nhà H6', value: 'H6' },
+  { label: 'Nhà thi đấu', value: 'C' },
+
+];
+
+const FLOORS = [
+  { label: 'Tầng 1', value: '1' },
+  { label: 'Tầng 2', value: '2' },
+  { label: 'Tầng 3', value: '3' },
+  { label: 'Tầng 4', value: '4' },
+  { label: 'Tầng 5', value: '5' },
+  { label: 'Tầng 6', value: '6' },
+  { label: 'Tầng 7', value: '7' },
+  { label: 'Tầng 8', value: '8' },
+  { label: 'Tầng B', value: 'B' },
+];
+
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState('');
-  const [building, setBuilding] = useState('H1');
+  const [building, setBuilding] = useState('');
   const [floor, setFloor] = useState('');
   const [room, setRoom] = useState('');
   const [date, setDate] = useState(new Date());
@@ -52,7 +64,8 @@ export default function CreatePostPage() {
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [openBuilding, setOpenBuilding] = useState(false);
+  const [openFloor, setOpenFloor] = useState(false);
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -143,8 +156,16 @@ export default function CreatePostPage() {
         <Stack.Screen
           options={{
             headerTitle: 'Tạo bài đăng',
+            headerBackVisible: true,
+            headerBackTitle: 'Quay lại',
             headerTintColor: '#333',
-            headerStyle: { backgroundColor: '#fff' },
+            headerStyle: { backgroundColor: headerTheme.colors.primary },
+            headerTitleStyle: {
+              fontFamily: "Inter-Bold",
+              fontSize: 20,
+              fontWeight: "700",
+              color: "#111827",
+            },
           }}
         />
 
@@ -167,21 +188,30 @@ export default function CreatePostPage() {
           <View style={styles.row}>
             <View style={[styles.fieldGroup, styles.rowItem]}>
               <Text style={styles.label}>Tòa nhà *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="H1 / H2 / H3..."
+              <DropDownPicker
+                open={openBuilding}
                 value={building}
-                onChangeText={setBuilding}
+                items={BUILDINGS}
+                setOpen={setOpenBuilding}
+                setValue={setBuilding}
+                placeholder="Chọn tòa nhà"
+                style={styles.input}
+                listMode="SCROLLVIEW"
               />
+
             </View>
 
             <View style={[styles.fieldGroup, styles.rowItem]}>
               <Text style={styles.label}>Tầng *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="VD: 1, 2, B1..."
+              <DropDownPicker
+                open={openFloor}
                 value={floor}
-                onChangeText={setFloor}
+                items={FLOORS}
+                setOpen={setOpenFloor}
+                setValue={setFloor}
+                placeholder="Chọn tầng"
+                style={styles.input}
+                listMode="SCROLLVIEW"
               />
             </View>
           </View>
@@ -311,8 +341,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   previewImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 8,
     backgroundColor: '#e5e7eb',
     marginRight: 12,

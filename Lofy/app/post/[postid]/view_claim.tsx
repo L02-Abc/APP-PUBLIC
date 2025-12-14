@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  SafeAreaView
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api'; // Hãy kiểm tra lại đường dẫn import api của bạn
+import { headerTheme } from 'styles/theme'
+
+import { useFocusEffect } from '@react-navigation/native';
 
 // Định nghĩa kiểu dữ liệu Claim
 interface Claim {
@@ -22,7 +24,7 @@ interface Claim {
   contact_info: string;
   updated_at: string;
   user_name?: string;
-  status?: string; // Thêm status để hiển thị màu sắc nếu cần
+  claim_status: "PENDING" | "ACCEPTED" | "REJECTED"; // Thêm status để hiển thị màu sắc nếu cần
 }
 
 interface UserName {
@@ -30,7 +32,7 @@ interface UserName {
   email: string;
 }
 
-// --- TÁCH COMPONENT CON: ClaimCard ---
+// --- COMPONENT CON: ClaimCard ---
 // Component này chịu trách nhiệm hiển thị từng item và fetch tên user riêng lẻ
 const ClaimCard = ({
   item,
@@ -43,8 +45,40 @@ const ClaimCard = ({
 }) => {
   const [userName, setUserName] = useState<UserName | null>(null);
   const [loadingName, setLoadingName] = useState(true);
+  const status = item.claim_status;
 
+  const btnStatusStyle =
+    status === 'REJECTED'
+      ? styles.btnReject
+      : status === 'ACCEPTED'
+        ? styles.btnAccept
+        : null;
   let statusBg = '#f3f4f6';
+  let statusTextLabel = 'Đang chờ';
+  let stat = 'Đang chờ chấp thuận'
+  let colorText = '#4b5563'
+
+  if (status == 'ACCEPTED') {
+    statusBg = '#0bfe60ff';
+    stat = statusTextLabel = 'Đã chấp nhận';
+    colorText = 'white'
+
+  }
+  if (status == 'REJECTED') {
+    statusBg = '#ff2727ff';
+    stat = statusTextLabel = 'Đã từ chối';
+    colorText = 'white'
+  }
+
+  const checkStat = (status: string) => {
+    if (status == 'ACCEPTED') {
+      return styles.accept;
+    }
+    else if (status == 'REJECTED') {
+      return styles.reject;
+    }
+    return styles.pending;
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -54,7 +88,7 @@ const ClaimCard = ({
         const res = await api.post(`/user/infoById`, { id: Number(item.usr_id) }, {});
 
         if (isMounted) {
-          setUserName(res as UserName); // api wrapper của bạn trả về data trực tiếp
+          setUserName(res as UserName);
         }
       } catch (err) {
         console.error("Error fetching user name:", err);
@@ -69,19 +103,27 @@ const ClaimCard = ({
   }, [item.usr_id]);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, checkStat(status)]}>
       <View style={styles.cardHeader}>
         <Text style={styles.claimId}>Yêu cầu #{item.id}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
+        <View style={[styles.statusBadge,]}>
           <Text style={styles.statusText}>
             {loadingName ? "Đang tải..." : (userName ? userName.alias : "Unknown")}
           </Text>
         </View>
       </View>
 
-      <Text style={styles.date}>
-        {new Date(item.updated_at).toLocaleString('vi-VN')}
-      </Text>
+      <View style={styles.cardHeader}>
+        <Text style={styles.date}>
+          {new Date(item.updated_at).toLocaleString('vi-VN')}
+        </Text>
+        <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
+          <Text style={[styles.statusText, { color: colorText }]}>
+            {loadingName ? "Đang tải..." : (statusTextLabel)}
+          </Text>
+        </View>
+      </View>
+
 
       <Text style={styles.sectionHeader}>Nội dung</Text>
       <View style={styles.descriptionBox}>
@@ -95,13 +137,18 @@ const ClaimCard = ({
 
       <View style={styles.actionRow}>
         <TouchableOpacity
-          style={[styles.btn, styles.btnAccept]}
+          style={[styles.btn, btnStatusStyle]}
           onPress={() => onValidate(item.id, 'accepted')}
+          disabled={status != 'PENDING'}
         >
-          <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-          <Text style={styles.btnText}>Chấp nhận</Text>
-        </TouchableOpacity>
+          {status === 'REJECTED' ? (
+            <Ionicons name="warning-outline" size={20} color="white" />
+          ) : (
+            <Ionicons name="checkmark-circle-outline" size={20} color="white" />
+          )}
 
+          <Text style={styles.btnText}>{stat}</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.btn, styles.btnReport]}
@@ -129,6 +176,7 @@ export default function ClaimsScreen() {
       setLoading(true);
       const data = await api.get(`/post/${postIdStr}/claims`);
       setClaims(data);
+      console.log(data)
     } catch (err: any) {
       console.error("Fetch claims error:", err);
     } finally {
@@ -136,13 +184,21 @@ export default function ClaimsScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchClaims();
-  }, [postIdStr]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchClaims();
+
+      // optional cleanup when screen loses focus
+      return () => {
+        console.log("Screen unfocused");
+      };
+    }, [postIdStr]) // dependencies
+  );
+
 
   const sendClaim = async (claimId: number, decision: 'accepted' | 'rejected') => {
     try {
-      await api.patch(`/post/${claimId}/validate-claim?post_id=${postid}&decision=${decision}`, {});
+      await api.patch(`/post/${claimId}/validate-claim?post_id=${postid}`, {}, {});
       Alert.alert('Thành công', `Đã ${decision === 'accepted' ? 'chấp nhận' : 'từ chối'} yêu cầu.`);
     } catch (err: any) {
       Alert.alert('Thất bại', err.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
@@ -156,7 +212,7 @@ export default function ClaimsScreen() {
         "Bạn có chắc muốn xác nhận claim này là chính xác không? Các claim khác (nếu có) sẽ bị từ chối!",
         [
           { text: "Hủy", style: "cancel" },
-          { text: "Xác nhận", style: "default", onPress: () =>  sendClaim(claimId, decision)}
+          { text: "Xác nhận", style: "default", onPress: () => sendClaim(claimId, decision) }
         ]
       );
       fetchClaims();
@@ -171,15 +227,28 @@ export default function ClaimsScreen() {
       "Bạn có chắc muốn báo cáo yêu cầu nhận đồ này không?",
       [
         { text: "Hủy", style: "cancel" },
-        { text: "Báo cáo", style: "destructive", onPress: () => console.log(`Report claim ${claimId}`) }
+        { text: "Báo cáo", style: "destructive", onPress: () => router.push(`/post/${postid}/${claimId}/report`) }
       ]
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ headerTitle: `Yêu cầu nhận đồ (#${postIdStr})` }} />
-
+    <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerTitle: 'Các yêu cầu nhận',
+          headerBackVisible: true,
+          headerBackTitle: 'Quay lại',
+          headerTintColor: '#333',
+          headerStyle: { backgroundColor: headerTheme.colors.primary },
+          headerTitleStyle: {
+            fontFamily: "Inter-Bold",
+            fontSize: 20,
+            fontWeight: "700",
+            color: "#111827",
+          },
+        }}
+      />
       {loading ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2563EB" />
@@ -206,7 +275,7 @@ export default function ClaimsScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -244,18 +313,25 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'baseline',
     marginBottom: 8,
   },
   claimId: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1f2937',
+  },
+  statusBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 8,
   },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
+    backgroundColor: '#f3f4f6',
   },
   statusText: {
     fontSize: 12,
@@ -291,6 +367,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   btn: {
+    backgroundColor: '#a5fe7eff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -307,9 +384,12 @@ const styles = StyleSheet.create({
   },
   btnAccept: {
     backgroundColor: '#22c55e', // Green
+    opacity: 0.7,
+
   },
   btnReject: {
     backgroundColor: '#ef4444', // Red
+    opacity: 0.7,
   },
   btnReport: {
     backgroundColor: '#fef9c3', // Yellow light
@@ -319,4 +399,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+
+  reject: {
+    backgroundColor: '#ffbc9dff'
+  },
+
+  accept: {
+    backgroundColor: '#a5ffb0ff'
+  },
+  pending: {
+    backgroundColor: '#ffffffff'
+  }
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -51,7 +51,7 @@ export default function PostDetail() {
 
   const [isSubmitClaim, setSubmitClaim] = useState(true);
   const currentUserID = useUserStore(s => s.id);
-
+  const [alias, setAlias] = useState<string | null>(null);
 
   async function fetchPost(postid: number): Promise<PostDetailType> {
     const dataFetch = await api.get(`/post/get-post-details/${postid}`);
@@ -77,10 +77,19 @@ export default function PostDetail() {
       setSubmitClaim(false)
     }
   }
-  useEffect(() => {
-    submitClaim();
-    loadPost().finally(() => setIsLoading(false));
-  }, [postid]);
+
+  const getInfo = async () => {
+    const res = await api.post('/user/infoById', { id: currentUserID }, {});
+    setAlias(res.alias);
+  }
+  useFocusEffect(
+    useCallback(() => {
+      getInfo();
+      submitClaim();
+      loadPost().finally(() => setIsLoading(false));
+    }, [postid])
+  );
+
 
   if (isLoading) {
     return (
@@ -99,33 +108,53 @@ export default function PostDetail() {
   }
 
   // Helper render Status Badge
-  const renderStatusBadge = (status: string) => {
-    let color = '#6b7280';
-    let bg = '#f3f4f6';
-    let text = 'Unknown';
-    switch (status) {
-      case "open":
-        bg = statusColor.colorsBackground.open, color = statusColor.colorsText.open, text = 'Đang tìm chủ nhân'; // Red
-        break;
-      case 'with-security':
-        bg = statusColor.colorsBackground.withSecurity, color = statusColor.colorsBackground.withSecurity, text = 'Đã gửi bảo vệ';
-        break;
-      case 'returned':
-        bg = statusColor.colorsBackground.return, color = statusColor.colorsBackground.return, text = 'Đã trả về'; // Green
-        break;
-      case 'pending':
-        bg = statusColor.colorsBackground.pending, color = statusColor.colorsBackground.pending, text = 'Đang xử lý';
-        break
-      default:
-        bg = '#f3f4f6', color = '#6b7280', text = 'Unknown'
-    }; // Gray
+  const renderStatusBadge = (status?: string) => {
+    const s = status?.toLowerCase();
+
+    const map: Record<string, { bg: string; color: string; text: string }> = {
+      open: {
+        bg: statusColor.colorsBackground.open,
+        color: statusColor.colorsText.open,
+        text: 'Đang tìm chủ nhân',
+      },
+      'with-security': {
+        bg: statusColor.colorsBackground.withSecurity,
+        color: statusColor.colorsText.withSecurity,
+        text: 'Đã gửi bảo vệ',
+      },
+      archived: {
+        bg: statusColor.colorsBackground.return,
+        color: statusColor.colorsText.return,
+        text: 'Đã có người nhận',
+      },
+      pending: {
+        bg: statusColor.colorsBackground.pending,
+        color: statusColor.colorsText.pending,
+        text: 'Đang xử lý',
+      },
+    };
+
+    const cfg = map[s ?? ''];
+
+    if (!cfg) {
+      return (
+        <View style={[styles.statusBadge, { backgroundColor: '#f3f4f6' }]}>
+          <Text style={[styles.statusText, { color: '#6b7280' }]}>
+            Không xác định
+          </Text>
+        </View>
+      );
+    }
 
     return (
-      <View style={[styles.statusBadge, { backgroundColor: bg }]}>
-        <Text style={[styles.statusText, { color: color }]}>{text}</Text>
+      <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
+        <Text style={[styles.statusText, { color: cfg.color }]}>
+          {cfg.text}
+        </Text>
       </View>
     );
   };
+
 
   const handleDelete = () => {
     Alert.alert(
@@ -141,7 +170,7 @@ export default function PostDetail() {
           style: "destructive",
           onPress: async () => {
             try {
-              await api.patch(`/post/soft-delete-post/${postid}`, {});
+              await api.patch(`/post/soft-delete-post/${postid}`, {}, {});
               console.log("Deleted!");
               router.back();
             } catch (err) {
@@ -160,18 +189,23 @@ export default function PostDetail() {
       <Stack.Screen
         options={{
           headerTitle: 'Chi tiết bài đăng',
-          //headerBackTitleVisible: false,
-          headerTintColor: '#333',
-          headerStyle: { backgroundColor: '#fff' },
+          headerBackVisible: true,
           headerBackTitle: 'Quay lại',
+          headerTintColor: '#333',
+          headerStyle: { backgroundColor: headerTheme.colors.primary },
+          headerTitleStyle: {
+            fontFamily: "Inter-Bold",
+            fontSize: 20,
+            fontWeight: "700",
+            color: "#111827",
+          },
         }}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* 1. HERO IMAGE */}
+
         <View style={styles.imageContainer}>
           <Image source={{ uri: post.images?.[0]?.url ?? '' }} style={styles.image} resizeMode="cover" />
-          {/* Nút Back (nếu muốn custom overlay, hiện tại dùng header native rồi) */}
         </View>
 
         <View style={styles.body}>
@@ -222,32 +256,41 @@ export default function PostDetail() {
             <Text style={styles.descriptionText}>{post.post_description}</Text>
           </View>
 
-          {/* 5. USER INFO
+
           <View style={styles.userSection}>
             <Text style={styles.sectionTitle}>Người đăng</Text>
             <View style={styles.userCard}>
-              <Image source={{ uri: post.user_avatar}} style={styles.userAvatar} />
+
               <View style={styles.userInfo}>
-                <Text style={styles.userName}>{post.user_name}</Text>
-                <Text style={styles.userRole}>Sinh viên</Text>
+                <Text style={styles.userName}>{alias}</Text>
+                {/* <Text style={styles.userRole}>Sinh viên</Text> */}
               </View>
-              <TouchableOpacity style={styles.messageBtn}>
+              {/* <TouchableOpacity style={styles.messageBtn}>
                 <Ionicons name="chatbubble-ellipses-outline" size={24} color="#2563EB" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
-          </View> */}
+          </View>
         </View>
       </ScrollView>
 
       {/* 6. BOTTOM ACTION BAR (Sticky Footer) */}
       {isPostCreator ? (
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={handleDelete}>
+          <TouchableOpacity style={[styles.secondaryBtn, post.post_status != "OPEN" ? { opacity: 0.5 } : null]} onPress={handleDelete} disabled={post.post_status != "OPEN"}>
             <Text style={styles.secondaryBtnText}>Gỡ bỏ</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity style={[styles.editBtn, post.post_status != "OPEN" ? { opacity: 0.5 } : null]} disabled={post.post_status != "OPEN"} onPress={() => router.push({
+            pathname: `/post/${postid}/change_post`,
+            params: { titleP: post.title, buildingP: post.building, post_floorP: post.post_floor, nearest_roomP: post.nearest_room, found_atP: post.found_at, post_descriptionP: post.post_description, imageP: post.images?.[0]?.url ?? "", }
+
+          },)}>
+            <Text style={styles.editBtnText}>Sửa</Text>
+          </TouchableOpacity>
+
+
           <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push((`/post/${postid}/view_claim`))}>
-            <Text style={styles.primaryBtnText}>Xem các yêu cầu nhận</Text>
+            <Text style={styles.primaryBtnText}>Xem yêu cầu nhận</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -260,7 +303,11 @@ export default function PostDetail() {
               <Text style={styles.primaryBtnText}>Xem yêu cầu của bạn</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push(`/post/${postid}/submit_claim`)}>
+
+            <TouchableOpacity style={[styles.primaryBtn, post.post_status != 'OPEN' ? { opacity: 0.7 } : null]}
+
+              onPress={() => router.push(`/post/${postid}/submit_claim`)}
+              disabled={post.post_status != 'OPEN'}>
               <Text style={styles.primaryBtnText}>Liên hệ nhận đồ</Text>
             </TouchableOpacity>
           )}
@@ -465,4 +512,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  editBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#e0e7ff', // light indigo
+    marginRight: 12,
+  },
+  editBtnText: {
+    color: '#4338ca', // indigo text
+    fontWeight: '600',
+  },
+
 });

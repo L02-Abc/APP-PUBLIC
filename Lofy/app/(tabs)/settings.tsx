@@ -1,6 +1,6 @@
 import {
   View, Text, TouchableOpacity,
-  StyleSheet, ActivityIndicator,
+  StyleSheet, ActivityIndicator, Alert
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react'
@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useUserStore from '../store/useUserStore';
 import * as Sentry from '@sentry/react-native';
-
+import api from '../services/api'
 type User = {
   username: string;
   email: string;
@@ -24,14 +24,18 @@ export default function Settings() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const alias = useUserStore(s => s.alias)
+  const id = useUserStore(s => s.id)
   const fetchUser = async () => {
     try {
       setLoading(true);
       setError(null);
+      const res = await api.post('/user/infoById', { id: id }, {});
+      const data: User = {
+        username: res.alias,   // or res.username depending on your API
+        email: res.email,
+      };
 
-      const res: User = {username: alias, email: 'abc', phone_number: '123'};
-      setUser(res);
+      setUser(data);
     } catch (err: any) {
       console.log('fetchUser error:', err);
       setError(err.message ?? 'Failed to load user info');
@@ -39,6 +43,29 @@ export default function Settings() {
       setLoading(false);
     }
   };
+
+  const handleLogOut = () => {
+
+    Alert.alert(
+      "Đăng xuất",
+      "Bạn có chắc là muốn đăng xuất không?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: () => {
+            // perform logout logic here
+            router.push('/auth/login')
+          }
+        }
+      ]
+
+    )
+  }
 
   useEffect(() => {
     fetchUser();
@@ -69,32 +96,32 @@ export default function Settings() {
             </>
           )}
           {!loading && !error && !user && (
-              <Text style={styles.userInfo}>No user info</Text>
-            )}
+            <Text style={styles.userInfo}>No user info</Text>
+          )}
 
         </View>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => router.push('/post/mypost')}>
-          <FontAwesome name="history"
+        <FontAwesome name="history"
           size={48}
           color="black"
-          style={{ marginLeft: 20, marginRight: 12 }}  />
-          <View style={styles.cardContent}>
-            <Text style={styles.userName}>Lịch sử</Text>
-            <Text style={styles.userInfo}>Xem lại các bài đăng của bạn gần đây</Text>
-          </View>
-        </TouchableOpacity>
+          style={{ marginLeft: 20, marginRight: 12 }} />
+        <View style={styles.cardContent}>
+          <Text style={styles.userName}>Lịch sử</Text>
+          <Text style={styles.userInfo}>Xem lại các bài đăng của bạn gần đây</Text>
+        </View>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => router.push('/auth/login')}>
-          <Ionicons name="exit-outline"
+      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={handleLogOut}>
+        <Ionicons name="exit-outline"
           size={48}
           color="red"
           style={{ marginLeft: 20, marginRight: 12 }} />
-          <View style={styles.cardContent}>
-            <Text style={[styles.userName, {color: 'red'}]}>Log out</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.cardContent}>
+          <Text style={[styles.userName, { color: 'red' }]}>Log out</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -115,7 +142,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     flexDirection: 'row',      // 👈 icon + text row
-    alignItems: 'center',   
+    alignItems: 'center',
   },
   card: {
     width: '90%',
@@ -125,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     flexDirection: 'row',      // 👈 icon + text row
-    alignItems: 'center',  
+    alignItems: 'center',
   },
 
   cardContent: {
