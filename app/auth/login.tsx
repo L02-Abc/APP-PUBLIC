@@ -32,7 +32,6 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // State cho bộ đếm ngược (Resend Timer)
   const [timer, setTimer] = useState(0);
 
   // --- EFFECTS ---
@@ -172,7 +171,7 @@ export default function LoginScreen() {
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  editable={step === 'input_email'} // Khóa khi đang nhập OTP
+                  editable={step === 'input_email'}
                 />
                 {/* Checkmark xanh nếu email đúng định dạng */}
                 {email.endsWith(DOMAIN_REQUIRED) && (

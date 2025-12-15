@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import * as Notifications from 'expo-notifications';
 import { jwtDecode } from "jwt-decode";
-import useUserStore from './store/useUserStore';
+import useUserStore from '../store/useUserStore';
 import api from './services/api';
 import Constants from 'expo-constants'; // Useful for simulator checks
 

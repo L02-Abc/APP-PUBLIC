@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Icon } from 'react-native-elements';
 import { router } from 'expo-router';
 import api from '../services/api'
-import useUserStore from '../store/useUserStore';
+import useUserStore from '../../store/useUserStore';
 import { statusColor } from '@/styles/theme';
 import { useFocusEffect } from "expo-router";
 

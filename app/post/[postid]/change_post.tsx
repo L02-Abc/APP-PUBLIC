@@ -11,7 +11,7 @@ import {
     Alert,
     Image,
     KeyboardAvoidingView,
-    Platform, Button
+    Platform
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';

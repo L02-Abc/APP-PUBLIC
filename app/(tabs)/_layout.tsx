@@ -1,10 +1,7 @@
 import { Tabs } from 'expo-router';
 import { TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Icon có sẵn trong Expo
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import {Stack} from "expo-router/stack";
-import { TabView, SceneMap } from 'react-native-tab-view';
 import { headerTheme } from '../../styles/theme';
 
 export default function TabLayout() {
@@ -22,17 +19,17 @@ export default function TabLayout() {
 
         // Icon thông báo bên phải Header
         headerRight: () => (
-          
+
 
           <TouchableOpacity
             className="mr-5"
             onPress={() => router.push('/notification')} // Điều hướng khi bấm
-            >
-            <Ionicons name="notifications-outline" margin-right={10} size={24} color="#333" />
+          >
+            <Ionicons name="notifications-outline" margin-right={15} size={24} color="#333" />
             {/* Chấm đỏ thông báo (giả lập) */}
             <View className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
           </TouchableOpacity>
-  
+
         ),
 
         // --- CẤU HÌNH TAB BAR (Thanh menu phía dưới) ---
@@ -52,7 +49,7 @@ export default function TabLayout() {
       {/* TAB 1: Trang chủ */}
       <Tabs.Screen
         name="index"
-        
+
         options={{
           title: 'Trang chủ',
           headerTitle: 'Lofy',

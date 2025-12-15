@@ -8,8 +8,7 @@ import Constants from 'expo-constants';
 //       : 'https://lofydemo-596188287284.asia-southeast1.run.app')
 //     : 'http://192.168.1.116:8000'
 //   ;
-const BASE_URL = Constants.expoConfig?.extra?.apiUrl;
-console.log(`📡 API Connecting to: ${BASE_URL}`);
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL
 
 const getHeaders = async (isFormData: boolean = false) => {
   const headers: HeadersInit = {

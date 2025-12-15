@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  SafeAreaView
+
 } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,8 +42,8 @@ export default function SubmitClaimScreen() {
       const payload = {
         post_id: postid,
         claim_description: description,
-        contact_info: contactInfo, 
-        
+        contact_info: contactInfo,
+
       };
 
       // 3. Gọi API (Endpoint giả định dựa trên context cũ: POST /posts/{id}/claims)
@@ -71,14 +71,14 @@ export default function SubmitClaimScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Config Header */}
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerTitle: 'Gửi yêu cầu nhận đồ',
           //headerBackTitleVisible: false,
           headerTintColor: '#333',
-        }} 
+        }}
       />
 
       <KeyboardAvoidingView
@@ -87,7 +87,7 @@ export default function SubmitClaimScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          
+
           {/* Hướng dẫn */}
           <View style={styles.infoBox}>
             <Ionicons name="information-circle-outline" size={24} color="#2563EB" />
@@ -99,7 +99,7 @@ export default function SubmitClaimScreen() {
           <View style={styles.infoBox}>
             <Ionicons name="information-circle-outline" size={24} color="#2563EB" />
             <Text style={styles.infoText}>
-                Các thông tin mà bạn nhập sẽ chỉ hiển thị với người đăng bài
+              Các thông tin mà bạn nhập sẽ chỉ hiển thị với người đăng bài
             </Text>
           </View>
 
@@ -127,7 +127,7 @@ export default function SubmitClaimScreen() {
               value={contactInfo}
               onChangeText={setContactInfo}
             />
-            
+
           </View>
 
         </ScrollView>
@@ -147,7 +147,7 @@ export default function SubmitClaimScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#80806bff',
   },
-  
+
   // Footer
   footer: {
     padding: 20,

@@ -1,4 +1,4 @@
-import { tabBarTheme, headerTheme } from '@/styles/theme';
+import { headerTheme } from '@/styles/theme';
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -18,15 +18,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Icon } from 'react-native-elements';
 import { router } from 'expo-router';
 import api from '../services/api'
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import useUserStore from '../store/useUserStore';
+import useUserStore from '../../store/useUserStore';
 import { statusColor } from '@/styles/theme';
 import { useFocusEffect } from "expo-router";
 
-
-
-// --- TYPE DEFINITIONS ---
-type RouteKey = 'all' | 'h1' | 'h2' | 'h3' | 'h6' | 'c';
 
 
 type Route = {
