@@ -31,7 +31,8 @@
     },
     "extra": {
       "eas": {
-        "projectId": "11ea8666-552a-4edf-9474-01bb9a4498fb"
+        "projectId": "11ea8666-552a-4edf-9474-01bb9a4498fb",
+        "apiUrl": "process.env.EXPO_PUBLIC_API_URL"
       }
     },
     "runtimeVersion": {
@@ -41,14 +42,6 @@
       "url": "https://u.expo.dev/11ea8666-552a-4edf-9474-01bb9a4498fb"
     },
     "plugins": [
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "react-native",
-          "organization": "khang1309"
-        }
-      ],
       "expo-font",
       "expo-router"
     ]

@@ -41,6 +41,6 @@ yarn-error.*
 /android
 
 .env.local
-
+.env
 components
 coverage

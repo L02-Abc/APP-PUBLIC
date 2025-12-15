@@ -2,14 +2,13 @@ import {
   View, Text, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 import React from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import useUserStore from '../store/useUserStore';
+import useUserStore from '../../store/useUserStore';
 import * as Sentry from '@sentry/react-native';
 import api from '../services/api'
 type User = {

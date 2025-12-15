@@ -14,7 +14,6 @@ import {
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { headerTheme } from 'styles/theme'
 type Claim = {
     post_id: number,

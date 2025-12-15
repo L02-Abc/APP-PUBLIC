@@ -11,6 +11,7 @@ class Claim(Base):
     time_created: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     claim_description: Mapped[str] = mapped_column(Text, nullable=False)
     contact_info: Mapped[str] = mapped_column(String(255), nullable=False)
+    claim_status: Mapped[str] = mapped_column(String(255), nullable=True)
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
 
     usr_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)

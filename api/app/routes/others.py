@@ -21,16 +21,6 @@ async def send_report(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if data.post_id:
-        new_report = Report(
-            title = data.title,
-            report_message = data.report_message,
-            usr_id = current_user.id,
-            post_id = data.post_id
-        )
-        session.add(new_report)
-        await commit_to_db(session)
-        await session.refresh(new_report)
     if data.claim_id:
         res = await session.execute(select(Post.usr_id).where(Post.id == data.post_id))
         usr_id = res.scalar_one_or_none()
@@ -45,6 +35,19 @@ async def send_report(
         session.add(new_report)
         await commit_to_db(session)
         await session.refresh(new_report)
+        
+    if data.post_id:
+        new_report = Report(
+            title = data.title,
+            report_message = data.report_message,
+            usr_id = current_user.id,
+            post_id = data.post_id
+        )
+        session.add(new_report)
+        await commit_to_db(session)
+        await session.refresh(new_report)
+
+    
     return ReportCreate.model_validate(new_report)
 
 

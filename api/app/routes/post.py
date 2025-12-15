@@ -8,7 +8,7 @@ from app.models.post import Post, PostImage
 from app.models.claim import Claim
 from app.schemas.post import PostCreate
 from app.schemas.claim import ClaimCreate, ClaimUpdate, ClaimDisplay
-from app.utils.utils import commit_to_db, get_post_byid, filt, paginate, update_post_status
+from app.utils.utils import commit_to_db, get_post_byid, filt, paginate, update_post_status, update_claim_status
 from app.services.push_notification import notify_followers, notify_reporter, notify_claimer
 from app.services.upload_images import upload_images
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -186,7 +186,8 @@ async def submit_claim(
         claim_description = data.claim_description,
         contact_info = data.contact_info,
         usr_id = current_user.id,
-        post_id = data.post_id
+        post_id = data.post_id,
+        claim_status = "PENDING"
     )
     session.add(new_claim)
     await commit_to_db(session)
@@ -245,15 +246,21 @@ async def view_claims(
 async def validate_claim(
     post_id: int,
     claim_id: int,
-    decision: str,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
-    if decision == "accepted":
-        await update_post_status(post_id, "ARCHIVED", session, current_user)
-        background_tasks.add_task(notify_claimer, post_id, claim_id, decision)
-        return {"message": f"Claim with id {claim_id} for post # {post_id} was accepted"}
-    else:
-        background_tasks.add_task(notify_claimer, post_id, claim_id, decision)
-        return {"message": f"Claim with id {claim_id} for post # {post_id} was rejected"}
+    await update_post_status(post_id, "ARCHIVED", session, current_user)
+    await update_claim_status(claim_id, "ACCEPTED", session, current_user)
+    background_tasks.add_task(notify_claimer, post_id, claim_id, "ACCEPTED")
+    
+    res = await session.execute(select(Claim).where(and_(
+                Claim.post_id == post_id, 
+                Claim.id != claim_id,     
+                Claim.claim_status != "REJECTED" 
+            )))
+    other_claims = res.scalars().all()
+    for item in other_claims:
+        await update_claim_status(item.id, "REJECTED", session, current_user)
+        background_tasks.add_task(notify_claimer, post_id, item.id, "REJECTED")
+    return {"message": f"Claim with id {claim_id} for post # {post_id} was rejected"}

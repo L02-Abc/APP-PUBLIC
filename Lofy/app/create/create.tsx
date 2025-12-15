@@ -11,12 +11,11 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
-  Platform, Button
+  Platform
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import api from '../services/api';

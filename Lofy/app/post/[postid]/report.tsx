@@ -10,11 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  SafeAreaView
 } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../../services/api'; 
+import api from '../../services/api';
 
 // Danh sách các lý do báo cáo có sẵn
 const REPORT_REASONS = [
@@ -47,11 +46,11 @@ export default function ReportScreen() {
 
     try {
       const postIdStr = Array.isArray(postid) ? postid[0] : postid;
-      
+
       const payload = {
         title: finalTitle,
-        report_message: message? message: "No data",
-        post_id: postIdStr 
+        report_message: message ? message : "No data",
+        post_id: postIdStr
       };
 
       // 3. Gọi API gửi báo cáo
@@ -75,13 +74,13 @@ export default function ReportScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
+    <View style={styles.container}>
+      <Stack.Screen
+        options={{
           headerTitle: 'Report Post',
           //headerBackTitleVisible: false,
           headerTintColor: '#333',
-        }} 
+        }}
       />
 
       <KeyboardAvoidingView
@@ -89,7 +88,7 @@ export default function ReportScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          
+
           <View style={styles.infoBox}>
             <Ionicons name="shield-checkmark-outline" size={24} color="#2563EB" />
             <Text style={styles.infoText}>
@@ -140,7 +139,7 @@ export default function ReportScreen() {
           )}
 
           {/* Section: Message/Description */}
-          {selectedReason !== 'Khác' &&   <View style={styles.formGroup}>
+          {selectedReason !== 'Khác' && <View style={styles.formGroup}>
             <Text style={styles.label}>Cung cấp thêm thông tin về vi phạm này</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
@@ -171,7 +170,7 @@ export default function ReportScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 

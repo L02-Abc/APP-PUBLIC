@@ -1,16 +1,14 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-
-// --- CẤU HÌNH ĐỊA CHỈ SERVER ---
-
-const BASE_URL =
-  __DEV__
-    ? (Platform.OS === 'android'
-      ? 'http://10.0.2.2:8000'   // khi test với backend local
-      : 'https://lofydemo-596188287284.asia-southeast1.run.app')
-    : 'http://192.168.1.116:8000'
-  ;
-console.log(`📡 API Connecting to: ${BASE_URL}`);
+import Constants from 'expo-constants';
+// const BASE_URL =
+//   __DEV__
+//     ? (Platform.OS === 'android'
+//       ? 'http://10.0.2.2:8000'   // khi test với backend local
+//       : 'https://lofydemo-596188287284.asia-southeast1.run.app')
+//     : 'http://192.168.1.116:8000'
+//   ;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL
 
 const getHeaders = async (isFormData: boolean = false) => {
   const headers: HeadersInit = {

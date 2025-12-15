@@ -23,7 +23,8 @@ class ClaimDisplay(ClaimBase):
     usr_id: int
     post_id: int
     updated_at: datetime
-
+    claim_status: str
+    
     class Config:
         from_attributes = True
 

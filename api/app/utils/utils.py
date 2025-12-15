@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import  AsyncSession
 from fastapi import HTTPException, status, Query
 from app.models.user import User
 from app.models.post import Post, PostImage
+from app.models.claim import Claim
 from app.models.notification import Notification
 from app.schemas.post import PostCreate, PostImageBase
 from sqlalchemy.sql.sqltypes import Date, DateTime
@@ -24,6 +25,16 @@ async def update_post_status(post_id: int, status: str, session: AsyncSession, c
     
     return {"message": f"Updated post with id {post_id} to {status}"}
 
+async def update_claim_status(claim_id: int, status: str,  session: AsyncSession, current_user: User ):
+    data = await session.execute(select(Claim).where(Claim.id == claim_id))
+    claim = data.scalar_one_or_none()
+    if claim is None:
+        raise HTTPException(status_code=404, detail="Claim id not found")
+        
+    claim.claim_status = status
+    await commit_to_db(session)
+    await session.refresh(claim)
+    return {"message": f"Updated claim with id {claim_id} to {status}"}
 
 async def commit_to_db(session: AsyncSession):
     try:
@@ -91,7 +102,6 @@ def filt(model, requirements: dict):
             python_type = column.type.python_type
         except NotImplementedError:
             python_type = None
-        print("Helo")
         if python_type and issubclass(python_type, (datetime.datetime, datetime.date)):
             if isinstance(value, str):
                 try:
@@ -109,8 +119,3 @@ def filt(model, requirements: dict):
             res.append(column == value)
 
     return res
-
-
-
-
-

@@ -2,9 +2,9 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } fr
 import React from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import { Stack } from 'expo-router'
-import { useNotificationStore } from '../store/notiStore'
+import { useNotificationStore } from '../../store/notiStore'
 import api from '../services/api'
-import { Notification } from '../schema/notification'
+import { Notification } from '../../schema/notification'
 import { headerTheme } from 'styles/theme'
 
 

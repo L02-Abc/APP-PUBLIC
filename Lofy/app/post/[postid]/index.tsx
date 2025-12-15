@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { headerTheme } from '../../../styles/theme'; // Đảm bảo đường dẫn đúng
 import api from '../../services/api'
 import { statusColor } from '@/styles/theme';
-import useUserStore from '@/app/store/useUserStore';
+import useUserStore from '@/store/useUserStore';
 import { useFocusEffect } from "@react-navigation/native";
 
 
