@@ -21,8 +21,7 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
-
-export default function RootLayout() {
+function RootLayout() {
   return (
     <SafeAreaProvider>
       <Stack>
@@ -54,3 +53,4 @@ export default function RootLayout() {
   );
 };
 
+export default Sentry.wrap(RootLayout);

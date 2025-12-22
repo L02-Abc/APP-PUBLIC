@@ -41,8 +41,8 @@
     },
     "plugins": [
       //"expo-font",
-      "expo-router"
-      // "@sentry/react-native",
+      "expo-router",
+      "@sentry/react-native"
     ]
   }
 }
