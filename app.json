@@ -4,6 +4,7 @@
     "slug": "Lofy",
     "scheme": "myapp",
     "version": "1.0.1",
+    "runtimeVersion": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -37,9 +38,6 @@
     },
     "updates": {
       "enabled": false
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
     },
     "plugins": [
       //"expo-font",
