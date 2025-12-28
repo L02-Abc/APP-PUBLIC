@@ -7,7 +7,10 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://lofydemo-596188287284.asia-southeast1.run.app"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -16,11 +19,29 @@
     "apk": {
       "android": {
         "buildType": "apk"
+      },
+      "cache": {
+        "disabled": false
+      },
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://lofydemo-596188287284.asia-southeast1.run.app",
+        "EXPO_NO_METRO_WATCHER": "1",
+        "CI": "true"
       }
     },
     "production": {
-      "autoIncrement": true,
-      "channel": "production"
+      "android": {
+        "buildType": "apk"
+      },
+      "channel": "production",
+      "cache": {
+        "disabled": false
+      },
+      "env": {
+        "EXPO_NO_METRO_WATCHER": "1",
+        "CI": "true"
+      }
     }
   },
   "submit": {

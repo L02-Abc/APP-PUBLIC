@@ -111,8 +111,10 @@ export default function LoginScreen() {
       }, {});
 
       const { access_token } = response;
+      console.log('verify otp response:', response);
+      console.log('access_token:', access_token, typeof access_token);
 
-      if (access_token) {
+      if (access_token && typeof access_token === 'string') {
         // Lưu token
         await SecureStore.setItemAsync('auth_token', access_token);
         await SecureStore.setItemAsync('user_email', email);
@@ -120,7 +122,12 @@ export default function LoginScreen() {
         setIsLoading(false);
         router.replace('/');
       } else {
-        throw { message: 'Không nhận được token từ server' };
+        setIsLoading(false);
+        throw new Error(
+          Array.isArray(access_token)
+            ? access_token[0]
+            : 'Invalid token'
+        );
       }
 
     } catch (error: any) {

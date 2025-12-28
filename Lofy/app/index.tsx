@@ -1,12 +1,13 @@
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications';
 import { jwtDecode } from "jwt-decode";
 import useUserStore from '../store/useUserStore';
 import api from './services/api';
-import Constants from 'expo-constants'; // Useful for simulator checks
+import Constants from 'expo-constants';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -14,6 +15,8 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
     shouldShowBanner: true,
     shouldShowList: true,
+
+    shouldShowAlert: true,
   }),
 });
 
@@ -51,26 +54,32 @@ export default function StartPage() {
   // Helper: Get Push Token
   const registerPushToken = async () => {
     try {
-      // Optional: Skip if on iOS Simulator
-      const isDevice = Constants.isDevice; // requires expo-constants
-      // or simple try-catch
-
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') return;
 
-      // Ensure project ID is handled if using EAS, otherwise standard call
-      const tokenData = await Notifications.getExpoPushTokenAsync();
-      const token = tokenData.data;
+      const projectId =
+        Constants.easConfig?.projectId ??
+        Constants.expoConfig?.extra?.eas?.projectId;
 
-      console.log("Expo Push Token:", token);
+      if (!projectId) {
+        console.error("❌ EAS projectId missing");
+        return;
+      }
 
-      await api.post('/user/device-token', { device_push_token: token }, {});
-      console.log("Push device token registered");
+      const tokenData = await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
+
+      console.log("✅ Android Expo Push Token:", tokenData.data);
+
+      await api.post('/user/device-token', {
+        device_push_token: tokenData.data,
+      }, {});
     } catch (err) {
-      // Don't block login if notifications fail
-      console.log("Error registering push token (likely simulator or permission):", err);
+      console.error("❌ Push token error:", err);
     }
-  }
+  };
+
 
   // Helper: Fetch User Data
   const fetchUserData = async () => {
@@ -102,15 +111,19 @@ export default function StartPage() {
   useEffect(() => {
     const bootstrapAsync = async () => {
       // 1. Check Token
+      const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
       const token = await getTokenSecureStorage('auth_token');
+
+      if (!hasSeenWelcome || hasSeenWelcome == 'false') {
+        router.replace('/auth/welcome');
+        return;
+      }
 
       if (token) {
         console.log("Token valid, fetching user data...");
-        // 2. Token exists? Fetch user data *BEFORE* redirecting
         const userLoaded = await fetchUserData();
 
         if (userLoaded) {
-          // 3. Register token in background (don't await this if you want speed, or await if strict)
           registerPushToken();
           setIsLoggedIn(true);
         } else {

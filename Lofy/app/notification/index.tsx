@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import { Stack } from 'expo-router'
 import { useNotificationStore } from '../../store/notiStore'
-import api from '../services/api'
+//import api from '../services/api'
 import { Notification } from '../../schema/notification'
 import { headerTheme } from 'styles/theme'
 

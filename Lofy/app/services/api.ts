@@ -1,6 +1,4 @@
 import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 // const BASE_URL =
 //   __DEV__
 //     ? (Platform.OS === 'android'
@@ -95,7 +93,7 @@ const api = {
     } catch (e: any) {
       if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout). Kiểm tra server.' };
       console.error('Network/Logic Error:', e);
-      throw e; // Ném lỗi tiếp để UI xử lý
+      throw e;
     }
   },
 

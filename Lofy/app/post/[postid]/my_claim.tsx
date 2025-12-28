@@ -35,7 +35,7 @@ export default function SubmitClaimScreen() {
     useEffect(() => {
         const fetchClaim = async () => {
             try {
-                const data = await getMyClaim();   // 👈 await the promise
+                const data = await getMyClaim();
                 if (data) {
                     setDescription(data.claim_description);
                     setContactInfo(data.contact_info);

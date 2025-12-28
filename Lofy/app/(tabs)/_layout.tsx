@@ -1,35 +1,59 @@
 import { Tabs } from 'expo-router';
-import { TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { View, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useEffect } from 'react'
+import * as SecureStore from 'expo-secure-store';
 import { headerTheme } from '../../styles/theme';
 
 export default function TabLayout() {
+  useEffect(() => {
+    SecureStore.getItemAsync('auth_token').then(token => {
+      if (!token) {
+        router.replace('/auth/login');
+      }
+    });
+  }, []);
+
+
   return (
 
     <Tabs
       screenOptions={{
-        // --- CẤU HÌNH HEADER (Thanh tiêu đề phía trên) ---
+        headerTitleAlign: 'center',
+        headerTitleStyle: {
+          fontWeight: '600',
+          fontSize: 20,
+          fontStyle: 'normal'
+        },
+        headerShadowVisible: false,
         headerStyle: {
-          backgroundColor: headerTheme.colors.primary, // Màu nền header
-          shadowColor: 'transparent', // Tắt bóng đổ (tùy chọn)
-          elevation: 0, // Tắt bóng đổ trên Android
-
+          backgroundColor: headerTheme.colors.primary,
+          shadowColor: 'transparent',
+          elevation: 0,
         },
 
         // Icon thông báo bên phải Header
         headerRight: () => (
-
-
-          <TouchableOpacity
-            className="mr-5"
-            onPress={() => router.push('/notification')} // Điều hướng khi bấm
+          <Pressable
+            onPress={() => router.push('/notification')}
+            // 1. Give the button a fixed size and roundness for the ripple to look good
+            className="mr-4 w-10 h-10 items-center justify-center rounded-full"
+            // 2. Native Android Ripple Effect (Key for "Professional" feel)
+            android_ripple={{ color: 'rgba(0, 0, 0, 0.1)', borderless: true }}
+            // 3. Increase touch area for easier tapping
+            hitSlop={8}
           >
-            <Ionicons name="notifications-outline" margin-right={15} size={24} color="#333" />
-            {/* Chấm đỏ thông báo (giả lập) */}
-            <View className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-          </TouchableOpacity>
+            <View className="relative">
+              <Ionicons name="notifications-outline" size={26} color="#333" />
 
+
+              <View
+                className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"
+                style={{ transform: [{ translateX: 3 }, { translateY: -3 }] }}
+              />
+            </View>
+          </Pressable>
         ),
 
         // --- CẤU HÌNH TAB BAR (Thanh menu phía dưới) ---
@@ -52,14 +76,19 @@ export default function TabLayout() {
 
         options={{
           title: 'Trang chủ',
-          headerTitle: 'Lofy',
+          headerTitle: () => (
+            <Image
+              source={require('../../assets/headerStyle.png')} // ⚠️ Check your path
+              style={{ width: 120, height: 40 }} // Adjust size to fit
+              resizeMode="contain" // Keeps aspect ratio intact
+            />
+          ),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
           ),
         }}
       />
 
-      {/* TAB 2: Đã lưu (Archived) - Dựa theo file của bạn */}
       <Tabs.Screen
         name="archived"
         options={{
@@ -70,7 +99,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* TAB 3: Cài đặt (Settings) - Dựa theo file của bạn */}
       <Tabs.Screen
         name="settings"
         options={{
@@ -81,10 +109,6 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen name="create" options={{ href: null }} />
-      <Tabs.Screen name="login" options={{ href: null }} />
-      <Tabs.Screen name="claims" options={{ href: null }} />
-      <Tabs.Screen name="_layout" options={{ href: null }} />
     </Tabs >
 
   );

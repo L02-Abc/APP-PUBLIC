@@ -1,6 +1,7 @@
 // app/_layout.tsx
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
@@ -10,8 +11,6 @@ Sentry.init({
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
   sendDefaultPii: true,
 
-  // Enable Logs
-  enableLogs: true,
 
   // Configure Session Replay
   replaysSessionSampleRate: 0.1,
@@ -22,8 +21,7 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
-
-export default Sentry.wrap(function RootLayout() {
+function RootLayout() {
   return (
     <SafeAreaProvider>
       <Stack>
@@ -32,6 +30,8 @@ export default Sentry.wrap(function RootLayout() {
 
         {/* Tabs (no header, you control header there) */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+        <Stack.Screen name="index" options={{ headerShown: false }} />
 
         {/* Notification: has its own header + BACK automatically */}
         <Stack.Screen
@@ -51,4 +51,6 @@ export default Sentry.wrap(function RootLayout() {
       </Stack>
     </SafeAreaProvider>
   );
-});
+};
+
+export default Sentry.wrap(RootLayout);

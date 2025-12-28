@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar, Alert
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,8 +52,9 @@ export default function PostDetail() {
   const [isSubmitClaim, setSubmitClaim] = useState(true);
   const currentUserID = useUserStore(s => s.id);
   const [alias, setAlias] = useState<string | null>(null);
-
+  const [posterID, setPosterId] = useState<number>(currentUserID);
   async function fetchPost(postid: number): Promise<PostDetailType> {
+    if (!postid) throw new Error("Invalid post ID");
     const dataFetch = await api.get(`/post/get-post-details/${postid}`);
     return dataFetch as PostDetailType;
   }
@@ -65,11 +66,9 @@ export default function PostDetail() {
   const loadPost = async () => {
     const response = await fetchPost(Number(postid));
     setPost(response);
-    if (response?.usr_id === currentUserID) {
-      setCreator(true);
-    } else {
-      setCreator(false);
-    }
+    const uid = response.usr_id;
+    setPosterId(uid);
+    setCreator(uid === currentUserID);
   };
   const submitClaim = async () => {
     const res = await api.get(`/post/${postid}/claims/me`)
@@ -79,7 +78,9 @@ export default function PostDetail() {
   }
 
   const getInfo = async () => {
-    const res = await api.post('/user/infoById', { id: currentUserID }, {});
+    if (!postid) throw new Error("Invalid post ID");
+    console.log(posterID);
+    const res = await api.post('/user/infoById', { id: posterID }, {});
     setAlias(res.alias);
   }
   useFocusEffect(

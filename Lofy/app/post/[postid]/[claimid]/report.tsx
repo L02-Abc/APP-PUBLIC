@@ -39,7 +39,7 @@ export default function ReportScreenClaim() {
 
         // 2. Validate
         if (!finalTitle) {
-            Alert.alert('Missing Information', 'Please select a reason or specify one.');
+            Alert.alert('Thiếu thông tin', 'Hãy điền lý do báo cáo.');
             return;
         }
 

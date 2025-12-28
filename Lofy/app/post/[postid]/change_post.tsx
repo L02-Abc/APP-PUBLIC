@@ -10,19 +10,15 @@ import {
     ActivityIndicator,
     Alert,
     Image,
-    KeyboardAvoidingView,
-    Platform
+    Modal,
+    FlatList
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from "@react-native-community/datetimepicker";
-
-import api from '../../services/api';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { headerTheme } from 'styles/theme'
-
-
+import CustomDateTimePicker from 'schema/datetimepicker';
+import api from '../../services/api';
 
 const buildingMap: Record<string, number> = {
     h1: 1,
@@ -32,26 +28,12 @@ const buildingMap: Record<string, number> = {
     c: 4,
 };
 
-type PostDetailType = {
-    id: number;
-    title: string;
-    building: string;
-    post_floor: string;
-    nearest_room: string;
-    found_at: string;        // JSON string from backend
-    post_description: string;
-    post_status: string;     // "OPEN", "RETURNED", ...
-    usr_id: number;
-    images: { url: string }[];
-};
-
 const BUILDINGS = [
     { label: 'Tòa nhà H1', value: 'H1' },
     { label: 'Tòa nhà H2', value: 'H2' },
     { label: 'Tòa nhà H3', value: 'H3' },
     { label: 'Tòa nhà H6', value: 'H6' },
     { label: 'Nhà thi đấu', value: 'C' },
-
 ];
 
 const FLOORS = [
@@ -67,6 +49,88 @@ const FLOORS = [
 ];
 
 
+
+function CustomPicker({
+    label,
+    value,
+    items,
+    onValueChange,
+    placeholder
+}: {
+    label: string;
+    value: string;
+    items: Array<{ label: string; value: string }>;
+    onValueChange: (value: string) => void;
+    placeholder: string;
+}) {
+    const [visible, setVisible] = useState(false);
+    const selectedLabel = items.find(item => item.value === value)?.label || placeholder;
+
+    return (
+        <>
+            <TouchableOpacity
+                style={styles.input}
+                onPress={() => setVisible(true)}
+            >
+                <Text style={{ color: value ? '#111827' : '#9ca3af', fontSize: 14 }}>
+                    {selectedLabel}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+
+            <Modal
+                visible={visible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setVisible(false)}
+                >
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>{label}</Text>
+                            <TouchableOpacity onPress={() => setVisible(false)}>
+                                <Ionicons name="close" size={24} color="#374151" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <FlatList
+                            data={items}
+                            keyExtractor={(item) => item.value}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalItem,
+                                        value === item.value && styles.modalItemSelected
+                                    ]}
+                                    onPress={() => {
+                                        onValueChange(item.value);
+                                        setVisible(false);
+                                    }}
+                                >
+                                    <Text style={[
+                                        styles.modalItemText,
+                                        value === item.value && styles.modalItemTextSelected
+                                    ]}>
+                                        {item.label}
+                                    </Text>
+                                    {value === item.value && (
+                                        <Ionicons name="checkmark" size={20} color="#2563EB" />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </>
+    );
+}
+
+
 function normalizeParams<T extends Record<string, string | string[] | undefined>>(params: T) {
     const normalized: Record<string, string> = {};
     for (const key in params) {
@@ -79,8 +143,6 @@ function normalizeParams<T extends Record<string, string | string[] | undefined>
     }
     return normalized;
 }
-
-
 
 export default function EditPostPage() {
     const rawPara = useLocalSearchParams();
@@ -100,18 +162,16 @@ export default function EditPostPage() {
     const [building, setBuilding] = useState(buildingP.trim());
     const [floor, setFloor] = useState(post_floorP.trim());
 
-    const [room, setRoom] = useState(nearest_roomP);
+    const [room, setRoom] = useState(nearest_roomP.trim());
     const [date, setDate] = useState<Date>(
         found_atP ? new Date(found_atP) : new Date()
     );
+
     const [description, setDescription] = useState(post_descriptionP);
     const [imageUri, setImageUri] = useState<string>(imageP)
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isChange, setIsChange] = useState(false);
-
-    const [openBuilding, setOpenBuilding] = useState(false);
-    const [openFloor, setOpenFloor] = useState(false);
 
     const handlePickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -127,12 +187,30 @@ export default function EditPostPage() {
             quality: 0.8,
         });
 
-        if (!result.canceled) { //Hien tai chi lay 1 anh
+        if (!result.canceled) {
             setImageUri(result.assets[0].uri);
+            setIsChange(true);
         }
     };
 
     const handleSubmit = async () => {
+
+        if (!imageUri) {
+            Alert.alert(
+                'Thiếu hình ảnh',
+                'Vui lòng chọn ít nhất một hình ảnh.'
+            );
+            return;
+        }
+
+        if (!date) {
+            Alert.alert(
+                'Thiếu thời gian',
+                'Vui lòng chọn thời gian tìm thấy đồ.'
+            );
+            return;
+        }
+
         if (!title.trim() || !building.trim() || !floor.trim() || !room.trim()) {
             Alert.alert('Thiếu thông tin', 'Vui lòng điền đầy đủ các trường bắt buộc.');
             return;
@@ -148,7 +226,14 @@ export default function EditPostPage() {
             formData.append('nearest_room', room.trim());
             formData.append('found_at', date.toISOString().trim());
             formData.append('post_description', description.trim());
-            const id = buildingMap[String(building).toLowerCase()];
+
+            const buildingKey = String(building).toLowerCase();
+            const id = buildingMap[buildingKey];
+
+            if (!id) {
+                Alert.alert('Lỗi', 'Vui lòng chọn Tòa nhà hợp lệ.');
+                return;
+            }
             formData.append('thread_id', id.toString());
 
 
@@ -195,152 +280,154 @@ export default function EditPostPage() {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <View style={styles.container}>
-                <Stack.Screen
-                    options={{
-                        headerTitle: 'Chỉnh sửa bài đăng',
-                        headerBackVisible: true,
-                        headerBackTitle: 'Quay lại',
-                        headerTintColor: '#333',
-                        headerStyle: { backgroundColor: headerTheme.colors.primary },
-                        headerTitleStyle: {
-                            fontFamily: "Inter-Bold",
-                            fontSize: 20,
-                            fontWeight: "700",
-                            color: "#111827",
-                        },
-                    }}
-                />
+        <View style={{ flex: 1 }}>
+            <Stack.Screen
+                options={{
+                    headerTitle: 'Sửa bài đăng',
+                    headerBackVisible: true,
+                    headerBackTitle: 'Quay lại',
+                    headerTintColor: '#333',
+                    headerStyle: { backgroundColor: headerTheme.colors.primary },
+                    headerTitleStyle: {
+                        fontFamily: "Inter-Bold",
+                        fontSize: 20,
+                        fontWeight: "700",
+                        color: "#111827",
+                    },
+                }}
+            />
 
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {/* Title */}
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.label}>Tiêu đề *</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Ví dụ: Nhặt được ví ở H1"
-                            value={title}
-                            onChangeText={(text) => { setTitle(text); setIsChange(true) }}
-                        />
-                    </View>
+            <ScrollView
+                style={{ flex: 1, backgroundColor: '#f9fafb' }}
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Title */}
+                <View style={styles.fieldGroup}>
+                    <Text style={styles.label}>Tiêu đề *</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Ví dụ: Nhặt được ví ở H1"
+                        value={title}
+                        onChangeText={(text) => {
+                            setTitle(text)
+                            setIsChange(true)
+                        }
+                        }
+                    />
+                </View>
 
-                    {/* Building + Floor + Room */}
-                    <View style={styles.row}>
-                        <View style={[styles.fieldGroup, styles.rowItem]}>
-                            <Text style={styles.label}>Tòa nhà *</Text>
-                            <DropDownPicker
-                                open={openBuilding}
-                                value={building}
-                                items={BUILDINGS}
-                                setOpen={setOpenBuilding}
-                                setValue={(text) => { setBuilding(text); setIsChange(true) }}
-                                placeholder="Chọn tòa nhà"
-                                style={styles.input}
-                                listMode="SCROLLVIEW"
-                            />
-                        </View>
-
-                        <View style={[styles.fieldGroup, styles.rowItem]}>
-                            <Text style={styles.label}>Tầng *</Text>
-                            <DropDownPicker
-                                open={openFloor}
-                                value={floor}
-                                items={FLOORS}
-                                setOpen={setOpenFloor}
-                                setValue={(text) => { setFloor(text); setIsChange(true) }}
-                                placeholder="Chọn tầng"
-                                style={styles.input}
-                                listMode="SCROLLVIEW"
-                            />
-                        </View>
-                    </View>
-
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.label}>Gần phòng *</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="VD: 101, 202..."
-                            value={room}
-                            onChangeText={(text) => { setRoom(text); setIsChange(true) }}
-                        />
-                    </View>
-
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.label}>Thời gian tìm thấy *</Text>
-
-                        <DateTimePicker
-                            value={date}
-                            mode="datetime"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                if (selectedDate) setDate(selectedDate);
+                {/* Building + Floor */}
+                <View style={styles.row}>
+                    <View style={[styles.fieldGroup, styles.rowItem]}>
+                        <Text style={styles.label}>Tòa nhà *</Text>
+                        <CustomPicker
+                            label="Chọn tòa nhà"
+                            value={building}
+                            items={BUILDINGS}
+                            onValueChange={(text) => {
                                 setIsChange(true)
+                                setBuilding(text)
+                            }
+                            }
+                            placeholder="Chọn tòa nhà"
+                        />
+                    </View>
+
+                    <View style={[styles.fieldGroup, styles.rowItem]}>
+                        <Text style={styles.label}>Tầng *</Text>
+                        <CustomPicker
+                            label="Chọn tầng"
+                            value={floor}
+                            items={FLOORS}
+                            onValueChange={(text) => {
+                                setIsChange(true)
+                                setFloor(text)
                             }}
-                        />
-
-                    </View>
-
-
-                    {/* Description */}
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.label}>Mô tả chi tiết</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="Mô tả đồ vật, màu sắc, đặc điểm..."
-                            value={description}
-                            onChangeText={setDescription}
-                            multiline
-                            numberOfLines={4}
+                            placeholder="Chọn tầng"
                         />
                     </View>
+                </View>
 
-                    {/* Image picker */}
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.label}>Hình ảnh</Text>
-                        <View style={styles.imageRow}>
-                            {imageUri ? (
-                                <Image source={{ uri: imageUri }} style={styles.previewImage} />
-                            ) : (
-                                <View style={styles.previewPlaceholder}>
-                                    <Ionicons name="image-outline" size={28} color="#9ca3af" />
-                                    <Text style={{ color: '#9ca3af', marginTop: 4 }}>
-                                        Chưa chọn hình
-                                    </Text>
-                                </View>
-                            )}
+                <View style={styles.fieldGroup}>
+                    <Text style={styles.label}>Gần phòng *</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="VD: 101, 202..."
+                        value={room}
+                        onChangeText={(text) => {
+                            setIsChange(true)
+                            setRoom(text)
+                        }}
+                    />
+                </View>
 
-                            <TouchableOpacity
-                                style={styles.imageButton}
-                                onPress={handlePickImage}
-                            >
-                                <Ionicons name="camera-outline" size={20} color="#fff" />
-                                <Text style={styles.imageButtonText}>Chọn hình</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                <View style={styles.fieldGroup}>
+                    <Text style={styles.label}>Thời gian tìm thấy *</Text>
+                    <CustomDateTimePicker
+                        date={date}
+                        onDateChange={(date) => {
+                            setDate(date)
+                            setIsChange(true)
+                        }}
+                        label="Chọn thời gian"
+                    />
+                </View>
+                {/* Description */}
+                <View style={styles.fieldGroup}>
+                    <Text style={styles.label}>Mô tả chi tiết</Text>
+                    <TextInput
+                        style={[styles.input, styles.textArea]}
+                        placeholder="Mô tả đồ vật, màu sắc, đặc điểm..."
+                        value={description}
+                        onChangeText={(text) => {
+                            setIsChange(true)
+                            setDescription(text)
+                        }}
+                        multiline
+                        numberOfLines={4}
+                    />
+                </View>
 
-                    {/* Submit button */}
-                    <TouchableOpacity
-                        style={[styles.submitButton, (isSubmitting || !isChange) && { opacity: 0.5 }]}
-                        onPress={handleSubmit}
-                        disabled={isSubmitting || !isChange}
-                    >
-                        {isSubmitting ? (
-                            <ActivityIndicator color="#fff" />
+                {/* Image picker */}
+                <View style={styles.fieldGroup}>
+                    <Text style={styles.label}>Hình ảnh *</Text>
+                    <View style={styles.imageRow}>
+                        {imageUri ? (
+                            <Image source={{ uri: imageUri }} style={styles.previewImage} />
                         ) : (
-                            <Text style={styles.submitButtonText}>Cập nhật</Text>
+                            <View style={styles.previewPlaceholder}>
+                                <Ionicons name="image-outline" size={28} color="#9ca3af" />
+                                <Text style={{ color: '#9ca3af', marginTop: 4 }}>
+                                    Chưa chọn hình
+                                </Text>
+                            </View>
                         )}
-                    </TouchableOpacity>
-                </ScrollView>
-            </View>
-        </KeyboardAvoidingView>
+
+                        <TouchableOpacity
+                            style={styles.imageButton}
+                            onPress={handlePickImage}
+                        >
+                            <Ionicons name="camera-outline" size={20} color="#fff" />
+                            <Text style={styles.imageButtonText}>Chọn hình</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Submit button */}
+                <TouchableOpacity
+                    style={[styles.submitButton, (isSubmitting || !isChange) && { opacity: 0.7 }]}
+                    onPress={handleSubmit}
+                    disabled={isSubmitting || !isChange}
+                >
+                    {isSubmitting ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.submitButtonText}>Sửa bài đăng</Text>
+                    )}
+                </TouchableOpacity>
+            </ScrollView>
+        </View>
     );
 }
 
@@ -363,6 +450,9 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     input: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         backgroundColor: '#fff',
         borderRadius: 10,
         paddingHorizontal: 12,
@@ -428,5 +518,49 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '700',
         fontSize: 16,
+    },
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '70%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e5e7eb',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    modalItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f3f4f6',
+    },
+    modalItemSelected: {
+        backgroundColor: '#eff6ff',
+    },
+    modalItemText: {
+        fontSize: 16,
+        color: '#374151',
+    },
+    modalItemTextSelected: {
+        color: '#2563EB',
+        fontWeight: '600',
     },
 });

@@ -9,7 +9,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import useUserStore from '../../store/useUserStore';
-import * as Sentry from '@sentry/react-native';
+import * as SecureStore from 'expo-secure-store';
+//import * as Sentry from '@sentry/react-native';
 import api from '../services/api'
 type User = {
   username: string;
@@ -24,6 +25,7 @@ export default function Settings() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const id = useUserStore(s => s.id)
+  const { clearUser } = useUserStore.getState();
   const fetchUser = async () => {
     try {
       setLoading(true);
@@ -43,6 +45,11 @@ export default function Settings() {
     }
   };
 
+  const logOut = async () => {
+    await SecureStore.deleteItemAsync('auth_token');
+    router.replace('/auth/login');
+  }
+
   const handleLogOut = () => {
 
     Alert.alert(
@@ -58,7 +65,9 @@ export default function Settings() {
           style: "destructive",
           onPress: () => {
             // perform logout logic here
-            router.push('/auth/login')
+
+            clearUser();
+            logOut();
           }
         }
       ]

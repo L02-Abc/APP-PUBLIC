@@ -3,7 +3,8 @@
     "name": "Lofy",
     "slug": "Lofy",
     "scheme": "myapp",
-    "version": "1.0.0",
+    "version": "1.0.1",
+    "runtimeVersion": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -35,15 +36,13 @@
         "apiUrl": "process.env.EXPO_PUBLIC_API_URL"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
     "updates": {
-      "url": "https://u.expo.dev/11ea8666-552a-4edf-9474-01bb9a4498fb"
+      "enabled": false
     },
     "plugins": [
-      "expo-font",
-      "expo-router"
+      //"expo-font",
+      "expo-router",
+      "@sentry/react-native"
     ]
   }
 }

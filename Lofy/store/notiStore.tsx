@@ -35,7 +35,6 @@ export const useNotificationStore = create<NotificationState>()(
                     // 2. Validate and parse the response data using Zod
                     // Use .parse() if res.data is the JSON object, or .parseAsync() if res is a Promise
                     const validatedData = NotificationListSchema.parse(res);
-                    console.log(2)
                     // 3. Update the store state using the validated data
                     get().setNotifications(validatedData);
 
