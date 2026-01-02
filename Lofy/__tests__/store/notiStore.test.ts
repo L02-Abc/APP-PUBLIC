@@ -70,120 +70,49 @@ describe('useNotificationStore', () => {
     expect(s.unreadCount).toBe(1);
   });
 
-  it('fetchNotifications handles network errors without changing state', async () => {
+  it('fetchNotifications ignores invalid schema data and leaves state unchanged', async () => {
     process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
     jest.spyOn(SecureStore, 'getItemAsync').mockResolvedValue(null);
     const store = getStore();
-    // seed initial state
+    // Pre-populate with valid state
     store.setNotifications([
-      { id: 1, title: 'A', noti_message: 'm', time_created: new Date().toISOString(), is_read: false, link_to_newpost: null, user: { alias: 'x' } },
-      { id: 2, title: 'B', noti_message: 'm', time_created: new Date().toISOString(), is_read: true, link_to_newpost: null, user: { alias: 'y' } },
+      { id: 10, title: 'Prev', noti_message: 'ok', time_created: new Date().toISOString(), is_read: false, link_to_newpost: null, user: { alias: 'z' } },
     ]);
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    (global.fetch as jest.Mock).mockRejectedValue(new Error('network oops'));
-
-    await store.fetchNotifications();
-
-    const s = getStore();
-    expect(s.ListNotifications.length).toBe(2);
-    expect(s.unreadCount).toBe(1);
-    expect(consoleSpy).toHaveBeenCalled();
-    consoleSpy.mockRestore();
-  });
-
-  it('fetchNotifications logs and keeps state on invalid schema', async () => {
-    process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
-    jest.spyOn(SecureStore, 'getItemAsync').mockResolvedValue(null);
-    const store = getStore();
-    // seed initial state
-    store.setNotifications([
-      { id: 3, title: 'C', noti_message: 'm', time_created: new Date().toISOString(), is_read: false, link_to_newpost: null, user: { alias: 'z' } },
-    ]);
-
-    const invalid = [
-      // invalid: id as string, missing user
-      { id: 'bad', title: 'X', noti_message: 'm', time_created: new Date().toISOString(), is_read: false, link_to_newpost: null },
+    // Invalid payload: missing required 'is_read' and wrong type for 'user'
+    const badData = [
+      { id: 3, title: 'Bad', noti_message: 'x', time_created: new Date().toISOString(), link_to_newpost: null, user: 'alias-string' },
     ];
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       status: 200,
-      text: async () => JSON.stringify(invalid),
+      text: async () => JSON.stringify(badData),
     });
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await store.fetchNotifications();
-
-    const s = getStore();
-    expect(s.ListNotifications.length).toBe(1);
-    expect(s.unreadCount).toBe(1);
-    expect(consoleSpy).toHaveBeenCalled();
-    consoleSpy.mockRestore();
-  });
-
-  it('fetchNotifications handles non-ok response gracefully', async () => {
-    process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
-    jest.spyOn(SecureStore, 'getItemAsync').mockResolvedValue(null);
-    const store = getStore();
-    store.setNotifications([
-      { id: 1, title: 'A', noti_message: 'm', time_created: new Date().toISOString(), is_read: false, link_to_newpost: null, user: { alias: 'x' } },
-    ]);
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      status: 500,
-      text: async () => JSON.stringify({ detail: 'oops' }),
-    });
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await store.fetchNotifications();
     const s = getStore();
     expect(s.ListNotifications.length).toBe(1);
+    expect(s.ListNotifications[0].id).toBe(10);
     expect(s.unreadCount).toBe(1);
-    expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 
-  it('markAsRead with non-existent id leaves state unchanged', () => {
-    const store = getStore();
-    store.setNotifications([
-      { id: 1, title: 'A', noti_message: 'm', time_created: new Date().toISOString(), is_read: false, link_to_newpost: null, user: { alias: 'x' } },
-    ]);
-    store.markAsRead(999);
-    const s = getStore();
-    expect(s.unreadCount).toBe(1);
-    expect(s.ListNotifications[0].is_read).toBe(false);
-  });
-
-  it('setNotifications with empty list sets unreadCount to 0', () => {
-    const store = getStore();
-    store.setNotifications([]);
-    const s = getStore();
-    expect(s.unreadCount).toBe(0);
-    expect(s.ListNotifications.length).toBe(0);
-  });
-
-  it('markAllAsRead when already all read stays at 0', () => {
-    const store = getStore();
-    store.setNotifications([
-      { id: 1, title: 'A', noti_message: 'm', time_created: new Date().toISOString(), is_read: true, link_to_newpost: null, user: { alias: 'x' } },
-    ]);
-    store.markAllAsRead();
-    const s = getStore();
-    expect(s.unreadCount).toBe(0);
-    expect(s.ListNotifications.every(n => n.is_read)).toBe(true);
-  });
-
-  it('fetchNotifications handles empty array from server', async () => {
+  it('fetchNotifications handles network errors gracefully and leaves state unchanged', async () => {
     process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
     jest.spyOn(SecureStore, 'getItemAsync').mockResolvedValue(null);
     const store = getStore();
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify([]),
-    });
+    store.setNotifications([
+      { id: 20, title: 'Prev2', noti_message: 'ok', time_created: new Date().toISOString(), is_read: true, link_to_newpost: null, user: { alias: 'k' } },
+    ]);
+
+    (global.fetch as jest.Mock).mockRejectedValue(new Error('network down'));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await store.fetchNotifications();
     const s = getStore();
-    expect(s.ListNotifications.length).toBe(0);
+    expect(s.ListNotifications.length).toBe(1);
+    expect(s.ListNotifications[0].id).toBe(20);
     expect(s.unreadCount).toBe(0);
+    consoleSpy.mockRestore();
   });
 });

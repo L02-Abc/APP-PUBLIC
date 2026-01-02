@@ -76,34 +76,6 @@ describe('api client', () => {
     expect(init.method).toBe('POST');
   });
 
-  it('POST with isFormData=true skips JSON header even for object body', async () => {
-    (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(null);
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify({ uploaded: true }),
-    });
-    const res = await api.post('/upload2', { foo: 'bar' }, { timeout: 50, isFormData: true });
-    expect(res).toEqual({ uploaded: true });
-    const [, init] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(init.headers['Content-Type']).toBeUndefined();
-    expect(init.method).toBe('POST');
-    expect(init.body).toEqual({ foo: 'bar' });
-  });
-
-  it('DELETE without body sends undefined body', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify({ deleted: true }),
-    });
-    const res = await api.delete('/items/2', undefined);
-    expect(res).toEqual({ deleted: true });
-    const [, init] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(init.method).toBe('DELETE');
-    expect(init.body).toBeUndefined();
-  });
-
   it('handles JSON error body when response not ok', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,

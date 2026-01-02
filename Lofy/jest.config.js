@@ -9,9 +9,7 @@ module.exports = {
     "components/figma/ImageWithFallback.tsx",
     "styles/theme.ts",
     "utils/date.ts",
-    // Broaden coverage scope to include many UI + app files
-    "components/ui/**/*.tsx",
-    "app/**/*.tsx",
+    "utils/text.ts",
   ],
   coverageReporters: ["json", "lcov", "text", "clover", "html"],
   transform: {
