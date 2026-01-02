@@ -1,16 +1,36 @@
 module.exports = {
-  preset: "jest-expo",
+  testEnvironment: "jsdom",
   collectCoverage: true,
   collectCoverageFrom: [
-    "**/*.{ts,tsx}",
-    "!**/coverage/**",
-    "!**/node_modules/**",
-    "!**/babel.config.js",
-    "!**/jest.setup.js"
+    "app/services/api.ts",
+    "store/useUserStore.tsx",
+    "schema/notification.ts",
+    "store/notiStore.tsx",
+    "components/figma/ImageWithFallback.tsx",
+    "styles/theme.ts",
+    "utils/date.ts",
+    // Broaden coverage scope to include many UI + app files
+    "components/ui/**/*.tsx",
+    "app/**/*.tsx",
   ],
-  coverageReporters: ["json", "lcov", "text", "clover", "html"], // "html" tạo ra index.html
-  setupFilesAfterEnv: ["@testing-library/jest-native/extend-expect"], // Optional: Giúp test dễ viết hơn
-  transformIgnorePatterns: [
-    "node_modules/(?!react-native|expo|@expo|@react-native|@react-navigation)"
-  ],
+  coverageReporters: ["json", "lcov", "text", "clover", "html"],
+  transform: {
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          jsx: "react-jsx",
+        },
+        isolatedModules: true,
+      },
+    ],
+  },
+  moduleFileExtensions: ["ts", "tsx", "js"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  moduleNameMapper: {
+    // Stub RN/Expo modules used in core files
+    "^expo-secure-store$": "<rootDir>/test-stubs/expo-secure-store.js",
+    "^@react-native-async-storage/async-storage$": "<rootDir>/test-stubs/async-storage.js",
+  },
+  // Allow component tests (web) to run in jsdom
 };
