@@ -8,6 +8,7 @@ import { jwtDecode } from "jwt-decode";
 import useUserStore from '../store/useUserStore';
 import api from './services/api';
 import Constants from 'expo-constants';
+import * as Sentry from "@sentry/react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -98,26 +99,28 @@ export default function StartPage() {
   };
 
 
-  // Helper: Fetch User Data
   const fetchUserData = async () => {
     try {
-      const { initFollowedThread, clearUser, setAlias, setID } = useUserStore.getState();
+      const { initFollowedThread, clearUser, setAlias, setID, setRole } = useUserStore.getState();
 
       const res = await api.get('/user/me');
       const userData = res.data ? res.data : res;
 
       clearUser();
 
-      // Safety check if followed_threads exists
       if (userData.followed_threads) {
         const threadIds = userData.followed_threads.map((item: any) => item.thread_id);
         initFollowedThread(threadIds);
       }
-
-      // FIX: Use userData, not res
       setAlias(userData['alias']);
       setID(userData['id']);
+      setRole(userData['role']);
       console.log("User loaded:", userData['id']);
+      Sentry.setUser({
+        id: userData['id'].toString(),
+        username: userData['alias'].toString(),
+        segment: userData['role'].toString() // 'admin' or 'student' - useful for filtering!
+      });
       return true;
     } catch (err) {
       console.error("Error fetching user details:", err);
@@ -127,7 +130,6 @@ export default function StartPage() {
 
   useEffect(() => {
     const bootstrapAsync = async () => {
-      // 1. Check Token
       const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
       const token = await getTokenSecureStorage('auth_token');
 

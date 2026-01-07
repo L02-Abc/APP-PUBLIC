@@ -12,7 +12,7 @@ import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api'; // Hãy kiểm tra lại đường dẫn import api của bạn
 import { headerTheme } from 'styles/theme'
-
+import * as Sentry from "@sentry/react-native";
 import { useFocusEffect } from '@react-navigation/native';
 
 // Định nghĩa kiểu dữ liệu Claim
@@ -92,6 +92,7 @@ const ClaimCard = ({
         }
       } catch (err) {
         console.error("Error fetching user name:", err);
+        Sentry.captureException(err)
       } finally {
         if (isMounted) setLoadingName(false);
       }
@@ -179,6 +180,7 @@ export default function ClaimsScreen() {
       console.log(data)
     } catch (err: any) {
       console.error("Fetch claims error:", err);
+      Sentry.captureException(err)
     } finally {
       setLoading(false);
     }
@@ -187,38 +189,39 @@ export default function ClaimsScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchClaims();
-
-      // optional cleanup when screen loses focus
-      return () => {
-        console.log("Screen unfocused");
-      };
-    }, [postIdStr]) // dependencies
+    }, [postIdStr])
   );
 
 
   const sendClaim = async (claimId: number, decision: 'accepted' | 'rejected') => {
     try {
+      setLoading(true);
       await api.patch(`/post/${claimId}/validate-claim?post_id=${postid}`, {}, {});
       Alert.alert('Thành công', `Đã ${decision === 'accepted' ? 'chấp nhận' : 'từ chối'} yêu cầu.`);
+
+      await fetchClaims();
+
     } catch (err: any) {
       Alert.alert('Thất bại', err.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
+      Sentry.captureException(err)
+    }
+    finally {
+      setLoading(false);
     }
   }
 
   const handleValidateClaim = async (claimId: number, decision: 'accepted') => {
-    try {
-      Alert.alert(
-        "Xác nhận claim",
-        "Bạn có chắc muốn xác nhận claim này là chính xác không? Các claim khác (nếu có) sẽ bị từ chối!",
-        [
-          { text: "Hủy", style: "cancel" },
-          { text: "Xác nhận", style: "default", onPress: () => sendClaim(claimId, decision) }
-        ]
-      );
-      fetchClaims();
-    } catch (err: any) {
-      Alert.alert('Thất bại', err.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
-    }
+
+    Alert.alert(
+      "Xác nhận claim",
+      "Bạn có chắc muốn xác nhận claim này là chính xác không? Các claim khác (nếu có) sẽ bị từ chối!",
+      [
+        { text: "Hủy", style: "cancel" },
+        { text: "Xác nhận", style: "default", onPress: () => sendClaim(claimId, decision) }
+      ]
+    );
+
+
   };
 
   const handleReportClaim = (claimId: number) => {

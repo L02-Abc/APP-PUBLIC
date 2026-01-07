@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { set } from 'zod';
+
 
 interface CustomDateTimePickerProps {
     date: Date;

@@ -54,7 +54,7 @@ type PostItem = {
   found_at: Date;
   post_des: string;
   user_id: number;
-  status: 'open' | 'with-security' | 'archived' | 'pending';
+  status: 'open' | 'with-security' | 'archived' | 'deleted';
 };
 
 
@@ -219,10 +219,10 @@ const STATUS_MAP: Record<string, { bg: string; color: string; text: string }> = 
     color: statusColor.colorsText.return,
     text: 'RETURNED',
   },
-  pending: {
+  deleted: {
     bg: statusColor.colorsBackground.pending,
     color: statusColor.colorsText.pending,
-    text: 'PENDING',
+    text: 'deleted',
   },
 };
 
@@ -230,7 +230,6 @@ const STATUS_MAP: Record<string, { bg: string; color: string; text: string }> = 
 // Component Card Item
 const CardItem = ({ item }: { item: PostItem }) => {
   const s = item.status?.toLowerCase();
-  console.log(s);
   const statusStyle =
     STATUS_MAP[s ?? ''] ?? {
       bg: '#f3f4f6',
@@ -248,7 +247,7 @@ const CardItem = ({ item }: { item: PostItem }) => {
       : 'https://via.placeholder.com/150';
 
   return (
-    <TouchableOpacity style={styles.cartItem} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.cartItem} onPress={handlePress} activeOpacity={0.7} disabled={item.status === 'deleted'}>
       <Image source={{ uri: imageUri }} style={styles.cardImage} resizeMode="cover" />
 
       <View style={styles.cardContent}>
@@ -290,8 +289,8 @@ const buildingMap: Record<string, number> = {
 
 
 // --- COMPONENT: GENERIC TAB ROUTE ---
-// Đây là "khuôn mẫu" chung cho tất cả các Tab.
-// Thay vì viết InitRoute, FirstRoute... ta dùng chung cái này.
+//chung cho tất cả các Tab.
+
 const GenericTabRoute = ({
   placeholder = "Tìm kiếm...",
   showTimeFilter = true,
@@ -376,6 +375,7 @@ const GenericTabRoute = ({
 
       console.log('POST /post/dashboard', requestPayload);
       const data = await api.post(`/post/dashboard?archived=${isArchived}&refresh=${refresh}&page=${page}&limit=${limit}`, requestPayload, {});
+      console.log(data);
       return data;
     } catch (error) {
       console.error("Fetch posts error:", error);
@@ -393,7 +393,7 @@ const GenericTabRoute = ({
       case 'ARCHIVED':
         return 'archived';
       default:
-        return 'pending';
+        return 'deleted';
     }
   }
 
@@ -531,7 +531,7 @@ const GenericTabRoute = ({
           onPress={() => router.push('create/create')}
         >
           <Ionicons name="add" size={22} color="white" />
-          <Text style={styles.createButtonText}>Create</Text>
+          <Text style={styles.createButtonText}>Tạo bài</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -6,10 +6,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type UserStore = {
   id: number,
   alias: string;
+  role: 'user' | 'admin';
   followedThreadIds: number[];              // 🔹 chỉ lưu danh sách thread_id
   setAlias: (alias: string) => void;
   setID: (id: number) => void;
-  initFollowedThread: ( threadIds: number[]) => void;
+  setRole: (role: 'user' | 'admin') => void;
+  initFollowedThread: (threadIds: number[]) => void;
   isThreadFollowed: (threadId: number) => boolean;
   toggleThreadFollow: (threadId: number) => void;
   clearUser: () => void;
@@ -20,14 +22,16 @@ const useUserStore = create<UserStore>()(
     (set, get) => ({
       id: 0,
       alias: '',
+      role: 'user',
       followedThreadIds: [],
-      
-      setID: (id) => set({id}),
+
+      setID: (id) => set({ id }),
+      setRole: (role) => set({ role }),
 
       setAlias: (alias) => set({ alias }),
 
       initFollowedThread: (threadIds) => {
-        set({ followedThreadIds: threadIds }); 
+        set({ followedThreadIds: threadIds });
       },
 
       isThreadFollowed: (threadId) => {

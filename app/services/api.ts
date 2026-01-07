@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import * as Sentry from '@sentry/react-native';
 // const BASE_URL =
 //   __DEV__
 //     ? (Platform.OS === 'android'
@@ -34,6 +35,7 @@ const fetchWithTimeout = async (resource: string, options: RequestInit & { timeo
     return response;
   } catch (error) {
     clearTimeout(id);
+    Sentry.captureException(error)
     throw error;
   }
 }
@@ -50,6 +52,7 @@ const handleResponse = async (response: Response) => {
   } catch (error) {
     // 3. Nếu parse thất bại -> Server trả về lỗi dạng text (ví dụ: "Internal Server Error")
     console.error(`🔥 API Parse Error (Status: ${response.status}). Raw response:`, textData);
+    Sentry.captureException(error)
     throw {
       status: response.status,
       message: textData || `Lỗi máy chủ (${response.status}). Vui lòng kiểm tra Terminal Backend.`
@@ -59,6 +62,7 @@ const handleResponse = async (response: Response) => {
   // 4. Nếu parse thành công nhưng status code là lỗi (4xx, 5xx)
   if (!response.ok) {
     console.error('❌ API Error Response:', data);
+    Sentry.captureMessage(`API Error: ${JSON.stringify(data)}`)
     throw { status: response.status, message: data.detail || 'Có lỗi xảy ra từ phía server' };
   }
 
@@ -93,6 +97,7 @@ const api = {
     } catch (e: any) {
       if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout). Kiểm tra server.' };
       console.error('Network/Logic Error:', e);
+      Sentry.captureException(e)
       throw e;
     }
   },
@@ -112,6 +117,7 @@ const api = {
 
     } catch (e: any) {
       if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout).' };
+      Sentry.captureException(e)
       console.error('Network/Logic Error:', e);
       throw e;
     }
@@ -135,6 +141,7 @@ const api = {
     } catch (e: any) {
       if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout). Kiểm tra server.' };
       console.error('Network/Logic Error:', e);
+      Sentry.captureException(e)
       throw e; // Ném lỗi tiếp để UI xử lý
     }
   },
@@ -164,6 +171,7 @@ const api = {
 
     } catch (e: any) {
       if (e.name === 'AbortError') throw { message: 'Kết nối quá hạn (Timeout). Kiểm tra server.' };
+      Sentry.captureException(e)
       console.error('Network/Logic Error:', e);
       throw e; // Ném lỗi tiếp để UI xử lý
     }

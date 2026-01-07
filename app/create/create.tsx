@@ -18,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { headerTheme } from 'styles/theme'
 import CustomDateTimePicker from '../../schema/datetimepicker';
 import api from '../services/api';
+import * as Sentry from "@sentry/react-native";
+import { logUserAction } from '../services/utils';
 
 const buildingMap: Record<string, number> = {
   h1: 1,
@@ -232,6 +234,7 @@ export default function CreatePostPage() {
           ? err.message
           : 'Không thể tạo bài đăng. Vui lòng thử lại.'
       );
+      Sentry.captureException(err)
     } finally {
       setIsSubmitting(false);
     }

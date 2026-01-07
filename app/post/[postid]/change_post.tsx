@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { headerTheme } from 'styles/theme'
 import CustomDateTimePicker from 'schema/datetimepicker';
 import api from '../../services/api';
-
+import * as Sentry from "@sentry/react-native";
 const buildingMap: Record<string, number> = {
     h1: 1,
     h2: 2,
@@ -267,6 +267,7 @@ export default function EditPostPage() {
                 },
             ]);
         } catch (err: any) {
+            Sentry.captureException(err)
             console.error('Create post error:', err);
             Alert.alert(
                 'Lỗi',

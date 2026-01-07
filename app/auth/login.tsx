@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { loginTheme } from '../../styles/theme';
 import api from '../services/api';
 import * as SecureStore from 'expo-secure-store';
-
+import * as Sentry from "@sentry/react-native";
 
 // Cấu hình hằng số
 const DOMAIN_REQUIRED = '@hcmut.edu.vn';
@@ -83,6 +83,7 @@ export default function LoginScreen() {
       setIsLoading(false);
       console.error('Error requesting OTP:', error);
       setErrorMessage(error.message || 'Không thể kết nối đến máy chủ.');
+      Sentry.captureException(error)
     }
   };
 
@@ -134,6 +135,7 @@ export default function LoginScreen() {
       setIsLoading(false);
       console.error('Login error:', error);
       setErrorMessage(error.message || 'Mã OTP không chính xác hoặc đã hết hạn.');
+      Sentry.captureException(error)
     }
   };
 

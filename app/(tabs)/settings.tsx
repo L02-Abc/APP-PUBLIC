@@ -10,13 +10,13 @@ import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import useUserStore from '../../store/useUserStore';
 import * as SecureStore from 'expo-secure-store';
-//import * as Sentry from '@sentry/react-native';
 import api from '../services/api'
 type User = {
   username: string;
   email: string;
   phone_number?: string;
 };
+import * as Sentry from '@sentry/react-native';
 
 
 
@@ -24,6 +24,7 @@ export default function Settings() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const role = useUserStore(s => s.role);
   const id = useUserStore(s => s.id)
   const { clearUser } = useUserStore.getState();
   const fetchUser = async () => {
@@ -40,6 +41,7 @@ export default function Settings() {
     } catch (err: any) {
       console.log('fetchUser error:', err);
       setError(err.message ?? 'Failed to load user info');
+      Sentry.captureException(err)
     } finally {
       setLoading(false);
     }
@@ -101,6 +103,7 @@ export default function Settings() {
               {user.phone_number && (
                 <Text style={styles.userInfo}>{user.phone_number}</Text>
               )}
+              <Text style={styles.userInfo}>Vai trò: {role === 'admin' ? "Quản trị viên" : "Người dùng"}</Text>
             </>
           )}
           {!loading && !error && !user && (
@@ -120,6 +123,21 @@ export default function Settings() {
           <Text style={styles.userInfo}>Xem lại các bài đăng của bạn gần đây</Text>
         </View>
       </TouchableOpacity>
+
+      {role === 'admin' && (
+        <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => router.push('/report/reportStat')}>
+
+          <FontAwesome name="bar-chart"
+            size={40}
+            color="black"
+            style={{ marginLeft: 20, marginRight: 12 }} />
+          <View style={styles.cardContent}>
+            <Text style={styles.userName}>Thống kê</Text>
+            <Text style={styles.userInfo}>Xem lại thống kê báo cáo của hệ thống</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
 
       <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={handleLogOut}>
         <Ionicons name="exit-outline"

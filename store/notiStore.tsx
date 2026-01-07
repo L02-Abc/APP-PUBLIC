@@ -8,11 +8,10 @@ import { NotificationListSchema, Notification } from '../schema/notification';
 
 interface NotificationState {
     ListNotifications: Notification[];
-    unreadCount: number;
     setNotifications: (items: Notification[]) => void;
-    markAsRead: (id: number) => void;
+    markAsRead: (id: number) => Promise<void>;
     markAllAsRead: () => void;
-    fetchNotifications: () => Promise<void>;
+    fetchNotifications: (page?: number, limit?: number) => Promise<void>;
 }
 
 export const useNotificationStore = create<NotificationState>()(
@@ -24,43 +23,39 @@ export const useNotificationStore = create<NotificationState>()(
             setNotifications: (items) =>
                 set({
                     ListNotifications: items,
-                    unreadCount: items.filter((n) => !n.is_read).length,
                 }),
 
-            fetchNotifications: async () => {
+            fetchNotifications: async (page, number) => {
                 try {
-                    // 1. Fetch data from the API
-                    const res = await api.get('/others/notifications/list-notifications');
+                    const res = await api.get(`/others/notifications?page=${page || 1}&number=${number || 10}`);
                     console.log(res)
-                    // 2. Validate and parse the response data using Zod
-                    // Use .parse() if res.data is the JSON object, or .parseAsync() if res is a Promise
                     const validatedData = NotificationListSchema.parse(res);
-                    // 3. Update the store state using the validated data
-                    get().setNotifications(validatedData);
+                    const currentList = get().ListNotifications ?? [];
+                    const incomingList = validatedData ?? [];
+                    const combined = [...currentList, ...incomingList];
+
+                    const uniqueNotifications = Array.from( //map de tranh bi trung id cua notification
+                        new Map(combined.map(item => [item.id, item])).values()
+                    );
+                    get().setNotifications(uniqueNotifications);
 
                 } catch (error) {
                     console.error("Failed to fetch and validate notifications:", error);
-                    // Handle error state if necessary
                 }
             },
 
-            markAsRead: (id) => set((state) => {
-                const updatedList = state.ListNotifications.map((n) =>
-                    n.id === id ? { ...n, is_read: true } : n
-                );
-                return {
-                    notifications: updatedList,
-                    unreadCount: updatedList.filter(n => !n.is_read).length
-                };
-            }),
+            markAsRead: async (id) => {
+                try {
+                    const res = await api.patch(`/others/notifications?noti_id=${id}`, {}, {});
+                }
+                catch (error) {
+                    console.error("Failed to mark notification as read:", error);
+                }
+            },
 
-            markAllAsRead: () => set((state) => {
-                const updatedList = state.ListNotifications.map((n) => ({ ...n, is_read: true }));
-                return {
-                    notifications: updatedList,
-                    unreadCount: 0
-                };
-            }),
+            markAllAsRead: () => {
+
+            },
         }),
         {
             name: 'notification-storage', // Tên key trong AsyncStorage

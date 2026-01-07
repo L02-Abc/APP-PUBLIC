@@ -14,6 +14,7 @@ import {
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
+import * as Sentry from "@sentry/react-native";
 
 // Danh sách các lý do báo cáo có sẵn
 const REPORT_REASONS = [
@@ -55,7 +56,7 @@ export default function ReportScreen() {
 
       // 3. Gọi API gửi báo cáo
       // Endpoint giả định: POST /posts/{id}/report
-      await api.post(`/others/report/send-report`, payload, {});
+      await api.post(`/others/report`, payload, {});
 
       Alert.alert(
         'Báo cáo đã gửi thành công',
@@ -67,6 +68,7 @@ export default function ReportScreen() {
     } catch (error: any) {
       console.error(error);
       const msg = error.message || 'Lỗi khi gửi báo cáo. Hãy thử lại sau';
+      Sentry.captureException(error)
       Alert.alert('Error', msg);
     } finally {
       setIsSubmitting(false);

@@ -16,6 +16,7 @@ import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../../services/api';
 import { headerTheme } from 'styles/theme'
+import * as Sentry from "@sentry/react-native";
 
 // Danh sách các lý do báo cáo có sẵn
 const REPORT_REASONS = [
@@ -70,6 +71,7 @@ export default function ReportScreenClaim() {
         } catch (error: any) {
             console.error(error);
             const msg = error.message || 'Lỗi khi gửi báo cáo. Hãy thử lại sau';
+            Sentry.captureException(error)
             Alert.alert('Error', msg);
         } finally {
             setIsSubmitting(false);

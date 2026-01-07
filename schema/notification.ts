@@ -12,7 +12,8 @@ const NotificationSchema = z.object({
   time_created: z.string(),
   is_read: z.boolean(),
   link_to_newpost: z.string().nullable(),
-  user: UserPublicScheme,
+  usr_id: z.number(),
+  post_id: z.number().nullable(),
 })
 
 export type Notification = z.infer<typeof NotificationSchema>;

@@ -16,7 +16,7 @@ import api from '../../services/api'
 import { statusColor } from '@/styles/theme';
 import useUserStore from '@/store/useUserStore';
 import { useFocusEffect } from "@react-navigation/native";
-
+import * as Sentry from "@sentry/react-native";
 
 type PostDetailType = {
   id: number;
@@ -48,13 +48,16 @@ export default function PostDetail() {
   const [post, setPost] = useState<PostDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPostCreator, setCreator] = useState(false);
-
+  const role = useUserStore(s => s.role);
   const [isSubmitClaim, setSubmitClaim] = useState(true);
   const currentUserID = useUserStore(s => s.id);
   const [alias, setAlias] = useState<string | null>(null);
   async function fetchPost(postid: number): Promise<PostDetailType> {
     if (!postid) throw new Error("Invalid post ID");
+    setIsLoading(true);
+    await submitClaim();
     const dataFetch = await api.get(`/post/get-post-details/${postid}`);
+    setIsLoading(false);
     return dataFetch as PostDetailType;
   }
 
@@ -67,9 +70,18 @@ export default function PostDetail() {
     return uid;
   };
   const submitClaim = async () => {
-    const res = await api.get(`/post/${postid}/claims/me`)
-    if (res == null) {
-      setSubmitClaim(false)
+    try {
+      const res = await api.get(`/post/${postid}/claims/me`);
+
+
+      if (res) {
+        setSubmitClaim(true);
+      } else {
+        setSubmitClaim(false);
+      }
+    } catch (error) {
+      setSubmitClaim(false);
+      Sentry.captureException(error)
     }
   }
 
@@ -88,6 +100,7 @@ export default function PostDetail() {
           await getInfo(uid);
         } catch (error) {
           console.error(error);
+          Sentry.captureException(error)
         } finally {
           setIsLoading(false);
         }
@@ -133,10 +146,10 @@ export default function PostDetail() {
         color: statusColor.colorsText.return,
         text: 'Đã có người nhận',
       },
-      pending: {
+      deleted: {
         bg: statusColor.colorsBackground.pending,
         color: statusColor.colorsText.pending,
-        text: 'Đang xử lý',
+        text: 'Đã xóa',
       },
     };
 
@@ -164,8 +177,9 @@ export default function PostDetail() {
 
   const handleDelete = () => {
     Alert.alert(
-      "Gỡ bài viết",
-      "Bạn có chắc muốn xóa bài viết này không?",
+      isPostCreator ? "Gỡ bài viết" : "Kiểm duyệt: Gỡ bài viết",
+      isPostCreator ? "Bạn có chắc là muốn gỡ bài viết này không? Hành động này không thể hoàn tác" :
+        "Kiểm duyệt: Bạn có chắc là muốn gỡ bài viết này xuống không? Hành động này không thể hoàn tác",
       [
         {
           text: "Hủy",
@@ -181,6 +195,7 @@ export default function PostDetail() {
               router.back();
             } catch (err) {
               console.log("Error deleting post", err);
+              Sentry.captureException(err)
               Alert.alert("Lỗi", "Không thể xóa bài viết.");
             }
           }
@@ -301,12 +316,17 @@ export default function PostDetail() {
         </View>
       ) : (
         <View style={styles.footer}>
+          {role !== 'admin' ? null : (
+            <TouchableOpacity style={[styles.secondaryBtn, post.post_status != "OPEN" ? { opacity: 0.5 } : null]} onPress={handleDelete} disabled={post.post_status != "OPEN"}>
+              <Text style={styles.secondaryBtnText}>Gỡ bỏ</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push(`/post/${postid}/report`)}>
             <Text style={styles.secondaryBtnText}>Báo cáo</Text>
           </TouchableOpacity>
           {isSubmitClaim ? (
             <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push({ pathname: `/post/${postid}/my_claim` })}>
-              <Text style={styles.primaryBtnText}>Xem yêu cầu của bạn</Text>
+              <Text style={styles.primaryBtnText}>Xem yêu cầu</Text>
             </TouchableOpacity>
           ) : (
 
@@ -338,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingBottom: 100, // Để chừa chỗ cho footer
+    paddingBottom: 100,
   },
 
   // Image
@@ -356,9 +376,9 @@ const styles = StyleSheet.create({
   body: {
     padding: 20,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 24, // Bo tròn góc nối với ảnh cho đẹp
+    borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    marginTop: -20, // Kéo lên đè lên ảnh một chút
+    marginTop: -20,
   },
 
   // Header Info
@@ -512,6 +532,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#2563EB',
     alignItems: 'center',
+    justifyContent: 'space-evenly'
   },
   primaryBtnText: {
     color: '#fff',

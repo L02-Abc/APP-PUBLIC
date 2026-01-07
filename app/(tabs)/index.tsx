@@ -18,7 +18,8 @@ import { router, useFocusEffect } from 'expo-router';
 import api from '../services/api'
 import useUserStore from '../../store/useUserStore';
 import { statusColor, headerTheme } from '@/styles/theme';
-
+import * as Sentry from "@sentry/react-native";
+import { logUserAction } from '../services/utils';
 
 
 type Route = {
@@ -221,6 +222,7 @@ const FollowThread = ({ threadId }: { threadId: number }) => {
     } catch (error) {
       console.error("API Error, rolling back UI:", error);
       toggleThreadFollow(threadId);
+      Sentry.captureException(error)
     }
   };
 
@@ -233,7 +235,7 @@ const FollowThread = ({ threadId }: { threadId: number }) => {
         size={24}
       />
       <Text style={styles.followBoxText}>
-        {isFollowedStatus ? 'Following' : 'Follow This Thread'}
+        {isFollowedStatus ? 'Đang theo dõi' : 'Theo dõi tòa này'}
       </Text>
     </TouchableOpacity>
   );
@@ -285,7 +287,7 @@ const CardItem = ({ item }: { item: PostItem }) => {
       : 'https://via.placeholder.com/150';
 
   return (
-    <TouchableOpacity style={styles.cartItem} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.cartItem} onPress={() => { logUserAction('post', 'User click on Post', { postID: item.id }); handlePress() }} activeOpacity={0.7}>
       <Image source={{ uri: imageUri }} style={styles.cardImage} resizeMode="cover" />
 
       <View style={styles.cardContent}>
@@ -418,6 +420,7 @@ const GenericTabRoute = ({
       return data;
     } catch (error) {
       console.error("Fetch posts error:", error);
+      Sentry.captureException(error)
       throw error;
     }
   }
@@ -492,6 +495,7 @@ const GenericTabRoute = ({
 
       }
     } catch (e) {
+      Sentry.captureException(e);
       console.error("Error loading posts:", e);
     } finally {
       setIsLoading(false);
@@ -530,12 +534,12 @@ const GenericTabRoute = ({
 
       {/* Render Filter Time Panel */}
       {activeFilter === 'time' && (
-        <FilterPanel title="Time Options" options={timeOptions} selectedValue={useFilterTime} onClose={closeFilter} setterTimeFilt={setUseFilterTime} />
+        <FilterPanel title="Chọn thời gian" options={timeOptions} selectedValue={useFilterTime} onClose={closeFilter} setterTimeFilt={setUseFilterTime} />
       )}
 
       {/* Render Filter Floor Panel */}
       {activeFilter === 'floor' && (
-        <FilterPanel title="Floor Options" options={floorOptions} selectedValue={useFilterFloor} onClose={closeFilter} setterFloorFilt={setUseFilterFloor} />
+        <FilterPanel title="Chọn tầng" options={floorOptions} selectedValue={useFilterFloor} onClose={closeFilter} setterFloorFilt={setUseFilterFloor} />
       )}
 
       {showFollow && (
@@ -570,10 +574,13 @@ const GenericTabRoute = ({
         <TouchableOpacity
           style={styles.createButton}
           activeOpacity={0.8}
-          onPress={() => router.push('create/create')}
+          onPress={() => {
+            logUserAction('post', 'User tapped Create Post');
+            router.push('create/create')
+          }}
         >
           <Ionicons name="add" size={22} color="white" />
-          <Text style={styles.createButtonText}>Create</Text>
+          <Text style={styles.createButtonText}>Tạo bài</Text>
         </TouchableOpacity>
       </View>
     </View>

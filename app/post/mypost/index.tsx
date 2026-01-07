@@ -12,6 +12,7 @@ import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 import { headerTheme } from 'styles/theme'
+import * as Sentry from "@sentry/react-native";
 type PostItem = {
   id: number;
   title: string;
@@ -113,6 +114,7 @@ export default function MyPostsScreen() {
         }
       } catch (error) {
         console.error("Lỗi tải bài viết của tôi:", error);
+        Sentry.captureException(error)
       } finally {
         setIsLoading(false);
       }

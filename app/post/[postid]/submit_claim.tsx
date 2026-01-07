@@ -15,7 +15,7 @@ import {
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api'; // Đảm bảo đường dẫn này đúng với cấu trúc của bạn
-
+import * as Sentry from "@sentry/react-native";
 
 export default function SubmitClaimScreen() {
   const { postid } = useLocalSearchParams();
@@ -64,6 +64,7 @@ export default function SubmitClaimScreen() {
     } catch (error: any) {
       console.error(error);
       const message = error.message || 'Có lỗi xảy ra khi gửi yêu cầu.';
+      Sentry.captureException(error)
       Alert.alert('Lỗi', message);
     } finally {
       setIsSubmitting(false);

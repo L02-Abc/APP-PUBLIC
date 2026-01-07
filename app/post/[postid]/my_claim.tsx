@@ -21,6 +21,7 @@ type Claim = {
     claim_description: string,
     contact_info: string,
 }
+import * as Sentry from "@sentry/react-native";
 
 export default function ChangeClaimScreen() {
     const { postid } = useLocalSearchParams();
@@ -43,6 +44,7 @@ export default function ChangeClaimScreen() {
                 }
             } catch (err) {
                 console.error(err);
+                Sentry.captureException(err)
             }
         };
         fetchClaim();
@@ -88,6 +90,7 @@ export default function ChangeClaimScreen() {
         } catch (error: any) {
             console.error(error);
             const message = error.message || 'Có lỗi xảy ra khi gửi yêu cầu.';
+            Sentry.captureException(error)
             Alert.alert('Lỗi', message);
         } finally {
             setIsUpdating(false);
