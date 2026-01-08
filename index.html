@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found HCMUT</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --accent: #3b82f6;
+            --muted: #64748b;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            color: #1f2937; /* text-gray-800 */
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .card-hover {
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 8px 10px -6px rgba(59, 130, 246, 0.1);
+            border-color: var(--accent);
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1), transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .demo-img {
+            transition: transform 300ms ease-in-out;
+        }
+        .demo-img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .link-btn {
+            transition: all 200ms ease-in-out;
+        }
+        .link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+        /* New utility for decorative blobs */
+        .blob {
+            position: absolute;
+            filter: blur(40px);
+            z-index: 0;
+            opacity: 0.4;
+        }
+        @media (max-width: 768px) {
+            .hero-mockup {
+                display: block;
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 min-h-[60vh] flex items-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+
+        <div class="blob bg-white w-64 h-64 rounded-full -top-10 -left-10 opacity-10"></div>
+        <div class="blob bg-blue-300 w-96 h-96 rounded-full bottom-0 right-0 opacity-20"></div>
+
+        <div class="container mx-auto px-6 relative z-10 py-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="md:w-1/2 text-center md:text-left fade-in visible">
+                    <div class="inline-block px-4 py-1 mb-4 text-sm font-semibold text-blue-100 bg-blue-700/30 rounded-full border border-blue-400/30">
+                        Official Campus Solution
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4 tracking-tight leading-tight text-white">
+                        Lost & Found <br />
+                        <span class="text-blue-100">HCMUT</span>
+                    </h1>
+                    <p class="text-lg text-blue-50 mb-6 font-light leading-relaxed max-w-lg mx-auto md:mx-0">
+                        A specialized platform to help HCMUT students and staff recover lost items efficiently, securely, and anonymously.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                        <a href="#features" class="px-8 py-3 bg-white text-blue-600 font-bold rounded-full shadow-lg hover:bg-blue-50 transition-all transform hover:-translate-y-1">
+                            Get Started
+                        </a>
+                        <a href="#demo" class="px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white/10 transition-all">
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center relative fade-in visible delay-100">
+                    <div class="relative w-56 h-56 md:w-80 md:h-80">
+                        <div class="absolute inset-0 bg-white/20 rounded-full blur-3xl animate-pulse"></div>
+                        <img src="https://img.icons8.com/windows/512/lost-and-found.png" alt="Lost & Found Icon" class="relative w-full h-full object-contain brightness-200 animate-float drop-shadow-2xl">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-20 -mt-10 relative z-20">
+        <div class="container mx-auto px-4 fade-in">
+            <div class="max-w-5xl mx-auto bg-white rounded-2xl p-8 md:p-12 shadow-xl card-hover border border-gray-100">
+                <div class="flex flex-col md:flex-row items-start gap-8">
+                    <div class="md:w-1/3">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">The Problem</h2>
+                        <div class="h-1 w-20 bg-blue-500 rounded"></div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <p class="text-lg text-gray-600 leading-relaxed">
+                            In the university environment, students frequently forget or lose personal items. Current processes for finding and recovering lost items are inefficient and time-consuming. Existing solutions include posting on social media groups (e.g., HCMUT K22, K23...) or handing items to security guards, but these face issues like <span class="font-semibold text-blue-600">information overload</span>, <span class="font-semibold text-blue-600">fragmentation</span>, and <span class="font-semibold text-blue-600">lack of centralized tracking</span>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold text-gray-900">Why Choose Us?</h2>
+                <p class="text-gray-500 mt-2">Designed specifically for the HCMUT community</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                <div class="bg-white rounded-2xl p-8 shadow-lg card-hover fade-in border border-gray-100 flex flex-col justify-center h-full">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/student-male.png" alt="User Icon">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-gray-900">Target Users</h3>
+                    <p class="text-gray-600 text-lg leading-relaxed">The platform is designed for students and staff at HCMUT Campus 2 (Di An), verified via <code class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-sm">@hcmut.edu.vn</code> email. It focuses on the university community to ensure relevance and security.</p>
+                </div>
+                <div class="bg-white rounded-2xl p-8 shadow-lg card-hover fade-in border border-gray-100 flex flex-col justify-center h-full">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/diamond.png" alt="Value Icon">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-gray-900">Value Proposition</h3>
+                    <p class="text-gray-600 text-lg leading-relaxed">Lost & Found HCMUT provides a specialized, structured, and anonymous way to post, search, and recover lost items. It minimizes hassle by offering location-based postings, real-time notifications, and scam prevention.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-20">
+        <div class="container mx-auto px-4 fade-in">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4 text-gray-900">Key Features</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">Everything you need to recover your items safely and quickly.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg card-hover border border-gray-100 group hover:bg-blue-50 transition-colors">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-900/20 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-500">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                        </svg>
+                    </div>
+                    <h5 class="text-xl font-bold mb-3 text-gray-900">Structured Postings</h5>
+                    <p class="text-gray-600">Post lost or found items with images, categorized by specific buildings/areas (e.g., H1, H2) to eliminate information clutter.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg card-hover border border-gray-100 group hover:bg-blue-50 transition-colors">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/invisible.png" class="group-hover:brightness-200 transition-all" alt="Icon">
+                    </div>
+                    <h5 class="text-xl font-bold mb-3 text-gray-900">Anonymity & Security</h5>
+                    <p class="text-gray-600">Interact anonymously without revealing personal contact info. Internal messaging avoids public exposure.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg card-hover border border-gray-100 group hover:bg-blue-50 transition-colors">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/appointment-reminders.png" class="group-hover:brightness-200 transition-all" alt="Icon">
+                    </div>
+                    <h5 class="text-xl font-bold mb-3 text-gray-900">Smart Notifications</h5>
+                    <p class="text-gray-600">Subscribe to specific areas for instant notifications on new postings relevant to you.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg card-hover border border-gray-100 group hover:bg-blue-50 transition-colors">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/checkmark.png" class="group-hover:brightness-200 transition-all" alt="Icon">
+                    </div>
+                    <h5 class="text-xl font-bold mb-3 text-gray-900">Verification Workflow</h5>
+                    <p class="text-gray-600">Claimers provide detailed descriptions to verify ownership, preventing scams and ensuring items return to owners.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg card-hover border border-gray-100 group hover:bg-blue-50 transition-colors">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/database.png" class="group-hover:brightness-200 transition-all" alt="Icon">
+                    </div>
+                    <h5 class="text-xl font-bold mb-3 text-gray-900">Data Privacy</h5>
+                    <p class="text-gray-600">Collect anonymous data for potential school statistics while strictly ensuring user privacy.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg card-hover border border-gray-100 group hover:bg-blue-50 transition-colors">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
+                        <img src="https://img.icons8.com/windows/32/3b82f6/code.png" class="group-hover:brightness-200 transition-all" alt="Icon">
+                    </div>
+                    <h5 class="text-xl font-bold mb-3 text-gray-900">Modern Tech Stack</h5>
+                    <p class="text-gray-600">Built with React Native/Expo for mobile, FastAPI for backend, and deployed on Google Cloud.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 fade-in">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4 text-gray-900">App Interface</h2>
+                <p class="text-gray-500">Clean, intuitive, and easy to use.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="text-center group">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl border-4 border-white mb-6 bg-gray-200 aspect-[9/19]">
+                        <img src="public/assets/dashboard.jpg" alt="Home Screen" class="w-full h-full object-cover demo-img">
+                    </div>
+                    <h4 class="text-xl font-semibold text-gray-900">Home Feed</h4>
+                    <p class="text-gray-500 mt-2 text-sm">Location-based postings</p>
+                </div>
+                <div class="text-center group">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl border-4 border-white mb-6 bg-gray-200 aspect-[9/19] mt-0 md:-mt-8">
+                        <img src="public/assets/19298651-637d-4ce1-b2fb-7ba173986b96.jpg" alt="Post Creation" class="w-full h-full object-cover demo-img">
+                    </div>
+                    <h4 class="text-xl font-semibold text-gray-900">Create Post</h4>
+                    <p class="text-gray-500 mt-2 text-sm">Easy upload & categorization</p>
+                </div>
+                <div class="text-center group">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl border-4 border-white mb-6 bg-gray-200 aspect-[9/19]">
+                        <img src="public/assets/image.png" alt="Claim Workflow" class="w-full h-full object-cover demo-img">
+                    </div>
+                    <h4 class="text-xl font-semibold text-gray-900">Verification</h4>
+                    <p class="text-gray-500 mt-2 text-sm">Secure claiming process</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20" id="demo">
+    <div class="container mx-auto px-4 fade-in">
+        <div class="bg-white rounded-3xl p-8 md:p-12 shadow-2xl card-hover border border-gray-100 text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 text-gray-900">Interactive Prototype</h2>
+            <p class="text-gray-600 mb-8 max-w-2xl mx-auto">Experience the flow of the application directly in your browser. Click through the screens to understand the user journey.</p>
+            <div class="overflow-hidden rounded-xl border border-gray-200 shadow-inner bg-gray-50 relative" style="aspect-ratio: 1/1; max-width: 100%; margin: 0 auto;">
+                <iframe class="absolute top-0 left-0 w-full h-full" style="border: 1px solid rgba(0, 0, 0, 0.1);" src="https://pivot-hide-29188620.figma.site/" allowfullscreen></iframe>
+            </div>
+            <p class="text-gray-400 mt-4 text-sm">Powered by Figma</p>
+        </div>
+    </div>
+    </section>
+
+    <section class="py-24 bg-gray-50">
+        <div class="container mx-auto px-4 text-center fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-gray-900">Explore More</h2>
+            <div class="flex justify-center gap-4">
+                <a href="https://www.behance.net/gallery/240506871/Lofy" class="inline-block bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-full font-semibold link-btn hover:from-blue-600 hover:to-blue-700">View on Behance</a>
+                <a href="https://www.figma.com/make/2FhKHfKw4sWOWOJnGz9qIH/Lost---Found-Mobile-App--Copy-?node-id=0-1&p=f&fullscreen=1/" class="inline-block bg-white text-blue-600 border-2 border-blue-500 px-8 py-3 rounded-full font-semibold link-btn hover:bg-blue-50">View on Figma</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gradient-to-r from-blue-600 to-blue-500 py-8 text-center text-white">
+        <div class="container mx-auto px-4">
+            <p class="text-blue-50 font-medium">&copy; 2025 Lost & Found HCMUT. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            fadeElements.forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>
