@@ -44,3 +44,4 @@ ios/
 .env
 components
 coverage
+google-services.json
